@@ -1,6 +1,4 @@
 <!-- badges: start -->
-[![CRAN status](https://www.r-pkg.org/badges/version/tulpaMesh)](https://CRAN.R-project.org/package=tulpaMesh)
-[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/tulpaMesh)](https://cran.r-project.org/package=tulpaMesh)
 [![R-CMD-check](https://github.com/gcol33/tulpaMesh/actions/workflows/R-CMD-check.yml/badge.svg)](https://github.com/gcol33/tulpaMesh/actions/workflows/R-CMD-check.yml)
 [![Codecov test coverage](https://codecov.io/gh/gcol33/tulpaMesh/graph/badge.svg)](https://app.codecov.io/gh/gcol33/tulpaMesh)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
