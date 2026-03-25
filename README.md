@@ -128,6 +128,13 @@ tm <- as_tulpa_mesh(fm)  # direct conversion
 fem <- fem_matrices(tm)  # same C, G, A as fmesher
 ```
 
+## Documentation
+
+- [Quick Start](https://gillescolling.com/tulpaMesh/articles/quickstart.html)
+- [Spatial Workflows](https://gillescolling.com/tulpaMesh/articles/workflows.html) -- boundaries, barriers, sf integration
+- [Spherical and Temporal Meshes](https://gillescolling.com/tulpaMesh/articles/advanced.html) -- globe, space-time, graphs, P2
+- [Full Reference](https://gillescolling.com/tulpaMesh/reference/)
+
 ## Support
 
 > "Software is like sex: it's better when it's free." -- Linus Torvalds
