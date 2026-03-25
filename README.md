@@ -21,7 +21,7 @@ fem  <- fem_matrices(mesh, obs_coords = coords)
 
 ## Statement of Need
 
-Spatial models based on the SPDE approach (Lindgren, Rue & Lindstrom 2011) need a triangulated mesh and finite element matrices. Existing tools either live outside CRAN (INLA) or require manual assembly (TMB). tulpaMesh delivers mesh generation, quality refinement, and FEM matrix assembly in a single CRAN package with no external dependencies beyond Rcpp and Matrix.
+Spatial models based on the SPDE approach (Lindgren, Rue & Lindstrom 2011) need a triangulated mesh and finite element matrices. tulpaMesh handles mesh generation, quality refinement, and FEM matrix assembly with no external dependencies beyond Rcpp and Matrix.
 
 Common applications:
 

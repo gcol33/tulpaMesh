@@ -22,3 +22,5 @@
 ^src/.*\.o$
 ^src/.*\.so$
 ^src/.*\.dll$
+^CODE_OF_CONDUCT\.md$
+^CONTRIBUTING\.md$
