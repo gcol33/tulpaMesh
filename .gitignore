@@ -1,0 +1,10 @@
+src/*.o
+src/*.so
+src/*.dll
+*.tar.gz
+*.Rcheck/
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+tests/testthat/Rplots.pdf

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+RCPP_PARALLEL_CXXFLAGS=`"${R_HOME}/bin${R_ARCH_BIN}/Rscript" -e "RcppParallel::CxxFlags()"`
+RCPP_PARALLEL_LIBS=`"${R_HOME}/bin${R_ARCH_BIN}/Rscript" -e "RcppParallel::LdFlags()"`
+
+sed -e "s|@RCPP_PARALLEL_CXXFLAGS@|${RCPP_PARALLEL_CXXFLAGS}|" \
+    -e "s|@RCPP_PARALLEL_LIBS@|${RCPP_PARALLEL_LIBS}|" \
+    src/Makevars.in > src/Makevars.win

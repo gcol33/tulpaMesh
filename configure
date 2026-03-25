@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Get RcppParallel flags
+RCPP_PARALLEL_CXXFLAGS=`"${R_HOME}/bin/Rscript" -e "RcppParallel::CxxFlags()"`
+RCPP_PARALLEL_LIBS=`"${R_HOME}/bin/Rscript" -e "RcppParallel::LdFlags()"`
+
+# Write Makevars
+sed -e "s|@RCPP_PARALLEL_CXXFLAGS@|${RCPP_PARALLEL_CXXFLAGS}|" \
+    -e "s|@RCPP_PARALLEL_LIBS@|${RCPP_PARALLEL_LIBS}|" \
+    src/Makevars.in > src/Makevars

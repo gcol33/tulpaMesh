@@ -1,0 +1,19 @@
+This package includes third-party software:
+
+CDT (Constrained Delaunay Triangulation)
+  Author: Artem Amirkhanov
+  Source: https://github.com/artem-ogre/CDT
+  License: Mozilla Public License 2.0 (MPL-2.0)
+  Files: src/cdt/CDT.h, src/cdt/CDT.hpp, src/cdt/CDTUtils.h,
+         src/cdt/CDTUtils.hpp, src/cdt/KDTree.h, src/cdt/LocatorKDTree.h,
+         src/cdt/portable_nth_element.hpp, src/cdt/predicates.h,
+         src/cdt/remove_at.hpp, src/cdt/Triangulation.h,
+         src/cdt/Triangulation.hpp
+
+  CDT is a C++ header-only library for constrained Delaunay triangulation.
+  It is used unmodified as a compile-time dependency. Per MPL-2.0 Section
+  3.3, the CDT source files retain their original license. The tulpaMesh
+  package as a whole is distributed under the MIT license; the CDT files
+  within src/cdt/ remain under MPL-2.0. This is permitted under MPL-2.0
+  Section 3.3 ("Larger Work") which allows combining MPL-licensed files
+  with files under a different license.
