@@ -138,14 +138,16 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
     all_points <- rbind(all_points, grid_pts)
   }
 
-  # Remove near-duplicate points
-  if (cutoff > 0) {
+  # Remove near-duplicate points (always deduplicate when max_edge is used,
+  # since hex lattice can produce exact duplicates with boundary vertices)
+  dedup_tol <- if (!is.null(max_edge) && cutoff == 0) 1e-10 else cutoff
+  if (dedup_tol > 0) {
     keep <- rep(TRUE, nrow(all_points))
     for (i in 2:nrow(all_points)) {
       if (!keep[i]) next
       dists <- sqrt(rowSums((all_points[1:(i-1), , drop = FALSE] -
                                matrix(all_points[i, ], nrow = i-1, ncol = 2, byrow = TRUE))^2))
-      if (any(dists[keep[1:(i-1)]] < cutoff)) keep[i] <- FALSE
+      if (any(dists[keep[1:(i-1)]] < dedup_tol)) keep[i] <- FALSE
     }
     # Remap boundary edges if points were removed
     if (!is.null(boundary_edges) && any(!keep)) {

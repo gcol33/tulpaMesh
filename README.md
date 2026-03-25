@@ -131,13 +131,13 @@ fem <- fem_matrices(tm)  # same C, G, A as fmesher
 ## Documentation
 
 - [Quick Start](https://gillescolling.com/tulpaMesh/articles/quickstart.html)
-- [Spatial Workflows](https://gillescolling.com/tulpaMesh/articles/workflows.html) -- boundaries, barriers, sf integration
-- [Spherical and Temporal Meshes](https://gillescolling.com/tulpaMesh/articles/advanced.html) -- globe, space-time, graphs, P2
+- [Spatial Workflows](https://gillescolling.com/tulpaMesh/articles/workflows.html) — boundaries, barriers, sf integration
+- [Spherical and Temporal Meshes](https://gillescolling.com/tulpaMesh/articles/advanced.html) — globe, space-time, graphs, P2
 - [Full Reference](https://gillescolling.com/tulpaMesh/reference/)
 
 ## Support
 
-> "Software is like sex: it's better when it's free." -- Linus Torvalds
+> "Software is like sex: it's better when it's free." — Linus Torvalds
 
 I'm a PhD student who builds R packages in my free time because I believe good tools should be free and open. I started these projects for my own work and figured others might find them useful too.
 
