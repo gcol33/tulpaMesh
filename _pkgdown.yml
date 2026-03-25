@@ -1,0 +1,92 @@
+url: https://github.com/gcol33/tulpaMesh
+template:
+  bootstrap: 5
+  bootswatch: sandstone
+  light-switch: yes
+  includes:
+    in_header: pkgdown/mathjax-config.html
+figures:
+  dev: svg
+  fig.ext: svg
+  bg: '#F5F6F8'
+home:
+  title: 'tulpaMesh: Spatial Meshes and FEM Matrices for SPDE Models'
+  description: |
+    Constrained Delaunay triangulation meshes and finite element method matrix assembly for spatial SPDE models.
+authors:
+  Gilles Colling:
+    href: https://github.com/gcol33
+navbar:
+  structure:
+    left:
+    - intro
+    - reference
+    - articles
+    - news
+    right:
+    - search
+    - lightswitch
+    - github
+  components:
+    intro:
+      text: Get Started
+      href: articles/quickstart.html
+    articles:
+      text: Articles
+      menu:
+      - text: Quick Start
+        href: articles/quickstart.html
+      - text: Spatial Workflows
+        href: articles/workflows.html
+      - text: Spherical and Temporal Meshes
+        href: articles/advanced.html
+    github:
+      icon: fab fa-github
+      href: https://github.com/gcol33/tulpaMesh
+      aria-label: GitHub
+reference:
+- title: Mesh Generation
+  desc: Create triangulated meshes from point coordinates
+  contents:
+  - tulpa_mesh
+  - tulpa_mesh_sphere
+  - tulpa_mesh_1d
+  - tulpa_mesh_graph
+- title: FEM Assembly
+  desc: Finite element matrices for SPDE models
+  contents:
+  - fem_matrices
+  - fem_matrices_p2
+  - fem_matrices_nonstationary
+- title: Mesh Quality
+  desc: Diagnostics and visualization
+  contents:
+  - mesh_quality
+  - mesh_summary
+  - plot.tulpa_mesh
+- title: Mesh Operations
+  desc: Manipulate and refine meshes
+  contents:
+  - subdivide_mesh
+  - subset_mesh
+  - mesh_components
+  - refine_mesh
+  - barrier_triangles
+- title: Conversion and Metadata
+  desc: Interoperability and coordinate systems
+  contents:
+  - as_tulpa_mesh
+  - mesh_crs
+articles:
+- title: Getting Started
+  navbar: ~
+  contents: quickstart
+- title: Guides
+  navbar: ~
+  contents:
+  - workflows
+  - advanced
+footer:
+  structure:
+    left: developed_by
+    right: built_with

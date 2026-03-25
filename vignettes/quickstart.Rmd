@@ -1,0 +1,114 @@
+---
+title: "Quick Start"
+author: "Gilles Colling"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quick Start}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+library(tulpaMesh)
+```
+
+## Your first mesh
+
+tulpaMesh takes point coordinates and returns a triangulated mesh with FEM matrices ready for SPDE models.
+
+```{r basic-mesh}
+set.seed(42)
+coords <- cbind(x = runif(100), y = runif(100))
+mesh <- tulpa_mesh(coords)
+mesh
+```
+
+The mesh extends slightly beyond the convex hull of your points (controlled by `extend`). Plot it:
+
+```{r plot-basic}
+plot(mesh, vertex_col = "steelblue", main = "Basic mesh")
+```
+
+## Controlling mesh density
+
+Use `max_edge` to add refinement points. The mesh generator places a hexagonal lattice of points at this spacing, producing near-equilateral triangles.
+
+```{r refined-mesh}
+mesh_fine <- tulpa_mesh(coords, max_edge = 0.08)
+mesh_fine
+plot(mesh_fine, main = "Refined mesh (max_edge = 0.08)")
+```
+
+## Getting FEM matrices
+
+`fem_matrices()` returns the three sparse matrices needed for SPDE models:
+
+- **C**: mass matrix (consistent, symmetric positive definite)
+
+- **G**: stiffness matrix (symmetric, zero row sums)
+
+- **A**: projection matrix mapping mesh vertices to observation locations
+
+```{r fem}
+fem <- fem_matrices(mesh_fine, obs_coords = coords)
+dim(fem$C)
+dim(fem$A)
+
+# Verify key properties
+all(Matrix::diag(fem$C) > 0)        # positive diagonal
+max(abs(Matrix::rowSums(fem$G)))     # row sums ~ 0
+range(Matrix::rowSums(fem$A))        # row sums = 1
+```
+
+For the SPDE Q-builder, you typically need the lumped (diagonal) mass matrix:
+
+```{r lumped}
+fem_l <- fem_matrices(mesh_fine, obs_coords = coords, lumped = TRUE)
+Matrix::isDiagonal(fem_l$C0)
+```
+
+## Using a formula interface
+
+If your coordinates live in a data.frame, use a formula:
+
+```{r formula}
+df <- data.frame(lon = runif(50), lat = runif(50), y = rnorm(50))
+mesh_f <- tulpa_mesh(~ lon + lat, data = df)
+mesh_f
+```
+
+## Mesh quality
+
+Check triangle quality with `mesh_quality()` and `mesh_summary()`:
+
+```{r quality}
+mesh_summary(mesh_fine)
+```
+
+Color triangles by minimum angle:
+
+```{r quality-plot}
+plot(mesh_fine, color = "quality", main = "Colored by minimum angle")
+```
+
+## Ruppert refinement
+
+For guaranteed minimum angles, use `min_angle`:
+
+```{r ruppert}
+mesh_r <- tulpa_mesh(coords, min_angle = 25, max_edge = 0.15)
+mesh_summary(mesh_r)
+```
+
+## Next steps
+
+- [Spatial Workflows](workflows.html) -- boundary constraints, barrier models, sf integration
+
+- [Spherical and Temporal Meshes](advanced.html) -- global meshes, space-time, metric graphs

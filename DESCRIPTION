@@ -32,8 +32,10 @@ Suggests:
     sf,
     fmesher,
     ggplot2,
+    svglite,
     knitr,
     rmarkdown
+VignetteBuilder: knitr
 LinkingTo:
     Rcpp,
     RcppParallel
