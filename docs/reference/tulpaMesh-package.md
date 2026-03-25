@@ -1,0 +1,28 @@
+# tulpaMesh: Constrained Delaunay Triangulation Meshes for Spatial 'SPDE' Models
+
+Generate constrained Delaunay triangulation meshes for use with
+stochastic partial differential equation (SPDE) spatial models
+('Lindgren', 'Rue' and 'Lindstroem' 2011
+[doi:10.1111/j.1467-9868.2011.00777.x](https://doi.org/10.1111/j.1467-9868.2011.00777.x)
+). Provides automatic mesh generation from point coordinates with
+boundary constraints, 'Ruppert' refinement for mesh quality, finite
+element method (FEM) matrix assembly (mass, stiffness, projection),
+barrier models, spherical meshes via icosahedral subdivision, and metric
+graph meshes for network geometries. Built on the 'CDT' header-only
+'C++' library ('Amirkhanov' 2024 <https://github.com/artem-ogre/CDT>).
+Designed as the mesh backend for the 'tulpa' Bayesian hierarchical
+modelling engine but usable standalone for any spatial triangulation
+task.
+
+## See also
+
+Useful links:
+
+- <https://github.com/gcol33/tulpaMesh>
+
+- Report bugs at <https://github.com/gcol33/tulpaMesh/issues>
+
+## Author
+
+**Maintainer**: Gilles Colling <gilles.colling051@gmail.com>
+([ORCID](https://orcid.org/0000-0003-3070-6066)) \[copyright holder\]
