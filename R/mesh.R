@@ -140,7 +140,8 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
 
   # Remove near-duplicate points (always deduplicate when max_edge is used,
   # since hex lattice can produce exact duplicates with boundary vertices)
-  dedup_tol <- if (!is.null(max_edge) && cutoff == 0) 1e-10 else cutoff
+  # Dedup tolerance: fraction of max_edge to prevent near-duplicate lattice/input overlap
+  dedup_tol <- if (!is.null(max_edge) && cutoff == 0) max_edge[1] * 0.3 else cutoff
   if (dedup_tol > 0) {
     keep <- rep(TRUE, nrow(all_points))
     for (i in 2:nrow(all_points)) {
@@ -166,13 +167,35 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
   use_ruppert <- !is.null(min_angle) || !is.null(max_area)
 
   if (use_ruppert) {
+    # Scale tolerance to mesh: 1e-4 of domain diameter
+    xr <- range(all_points[, 1]); yr <- range(all_points[, 2])
+    diam <- sqrt(diff(xr)^2 + diff(yr)^2)
+    dist_tol <- max(cutoff, diam * 1e-8, 1e-12)
+
+    # Deduplicate points within dist_tol (grid + boundary overlap)
+    keep <- rep(TRUE, nrow(all_points))
+    for (i in 2:nrow(all_points)) {
+      if (!keep[i]) next
+      dists <- sqrt(rowSums((all_points[1:(i-1), , drop = FALSE] -
+                               matrix(all_points[i, ], nrow = i-1, ncol = 2, byrow = TRUE))^2))
+      if (any(dists[keep[1:(i-1)]] < dist_tol)) keep[i] <- FALSE
+    }
+    if (any(!keep) && !is.null(boundary_edges)) {
+      remap <- cumsum(keep); remap[!keep] <- 0L
+      boundary_edges[, 1] <- remap[boundary_edges[, 1]]
+      boundary_edges[, 2] <- remap[boundary_edges[, 2]]
+      valid <- boundary_edges[, 1] > 0 & boundary_edges[, 2] > 0
+      boundary_edges <- boundary_edges[valid, , drop = FALSE]
+    }
+    all_points <- all_points[keep, , drop = FALSE]
+
     result <- cpp_ruppert_refine(
       points = all_points,
       edges_nullable = boundary_edges,
       min_angle_deg = if (!is.null(min_angle)) min_angle else 0,
       max_area = if (!is.null(max_area)) max_area else 0,
       max_steiner = as.integer(max_steiner),
-      min_dist_tolerance = max(cutoff, 1e-10)
+      min_dist_tolerance = dist_tol
     )
   } else {
     result <- cpp_triangulate(
@@ -435,4 +458,113 @@ hex_lattice <- function(x_min, x_max, y_min, y_max, spacing) {
     pts[[i]] <- cbind(xs, rep(ys[i], length(xs)))
   }
   do.call(rbind, pts)
+}
+
+
+# =====================================================================
+# Mesh quality diagnostics
+# =====================================================================
+
+#' Mesh Quality Diagnostics
+#'
+#' Computes per-triangle quality metrics: minimum angle, maximum angle,
+#' aspect ratio, and area. Useful for identifying degenerate triangles
+#' that may cause numerical issues in SPDE models.
+#'
+#' @param mesh A `tulpa_mesh` object.
+#'
+#' @return A data.frame with one row per triangle and columns:
+#'   \itemize{
+#'     \item `min_angle`: minimum interior angle (degrees)
+#'     \item `max_angle`: maximum interior angle (degrees)
+#'     \item `aspect_ratio`: longest edge / shortest edge (1 = equilateral)
+#'     \item `area`: triangle area
+#'   }
+#'
+#' @export
+#'
+#' @examples
+#' set.seed(42)
+#' mesh <- tulpa_mesh(cbind(runif(50), runif(50)))
+#' q <- mesh_quality(mesh)
+#' summary(q)
+mesh_quality <- function(mesh) {
+  if (!inherits(mesh, "tulpa_mesh")) stop("mesh must be a tulpa_mesh object")
+
+  v <- mesh$vertices
+  tri <- mesh$triangles
+  n_tri <- nrow(tri)
+
+  min_angle <- numeric(n_tri)
+  max_angle <- numeric(n_tri)
+  aspect_ratio <- numeric(n_tri)
+  area <- numeric(n_tri)
+
+  for (t in seq_len(n_tri)) {
+    p1 <- v[tri[t, 1], ]
+    p2 <- v[tri[t, 2], ]
+    p3 <- v[tri[t, 3], ]
+
+    # Edge lengths
+    a <- sqrt(sum((p2 - p3)^2))  # opposite p1
+    b <- sqrt(sum((p1 - p3)^2))  # opposite p2
+    c <- sqrt(sum((p1 - p2)^2))  # opposite p3
+
+    # Angles via law of cosines
+    angles <- numeric(3)
+    angles[1] <- acos(pmin(1, pmax(-1, (b^2 + c^2 - a^2) / (2 * b * c))))
+    angles[2] <- acos(pmin(1, pmax(-1, (a^2 + c^2 - b^2) / (2 * a * c))))
+    angles[3] <- pi - angles[1] - angles[2]
+
+    angles_deg <- angles * 180 / pi
+    min_angle[t] <- min(angles_deg)
+    max_angle[t] <- max(angles_deg)
+
+    edges <- sort(c(a, b, c))
+    aspect_ratio[t] <- edges[3] / max(edges[1], 1e-15)
+
+    # Signed area
+    area[t] <- abs((p2[1] - p1[1]) * (p3[2] - p1[2]) -
+                   (p3[1] - p1[1]) * (p2[2] - p1[2])) / 2
+  }
+
+  data.frame(
+    min_angle = min_angle,
+    max_angle = max_angle,
+    aspect_ratio = aspect_ratio,
+    area = area
+  )
+}
+
+#' Summarize Mesh Quality
+#'
+#' Prints a summary of mesh quality metrics.
+#'
+#' @param mesh A `tulpa_mesh` object.
+#' @return Invisibly returns the quality data.frame.
+#' @export
+mesh_summary <- function(mesh) {
+  q <- mesh_quality(mesh)
+  cat("Mesh quality summary:\n")
+  cat(sprintf("  Triangles:      %d\n", nrow(q)))
+  cat(sprintf("  Min angle:      %.1f / %.1f / %.1f (min / median / max)\n",
+              min(q$min_angle), median(q$min_angle), max(q$min_angle)))
+  cat(sprintf("  Max angle:      %.1f / %.1f / %.1f\n",
+              min(q$max_angle), median(q$max_angle), max(q$max_angle)))
+  cat(sprintf("  Aspect ratio:   %.2f / %.2f / %.2f\n",
+              min(q$aspect_ratio), median(q$aspect_ratio), max(q$aspect_ratio)))
+  cat(sprintf("  Area:           %.4f / %.4f / %.4f\n",
+              min(q$area), median(q$area), max(q$area)))
+
+  # Flag bad triangles
+  bad <- sum(q$min_angle < 10)
+  if (bad > 0) {
+    cat(sprintf("  WARNING: %d triangles with min angle < 10 degrees\n", bad))
+  }
+  very_bad <- sum(q$min_angle < 5)
+  if (very_bad > 0) {
+    cat(sprintf("  WARNING: %d triangles with min angle < 5 degrees (slivers)\n", very_bad))
+  }
+
+  invisible(q)
 }

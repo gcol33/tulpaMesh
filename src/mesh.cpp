@@ -153,6 +153,75 @@ static inline double min_angle_from_lengths(double l0, double l1, double l2) {
     return std::min({std::acos(c0), std::acos(c1), std::acos(c2)});
 }
 
+// Off-center point for Delaunay refinement (Üngör 2009).
+// Given a bad triangle, computes the off-center: a point on the perpendicular
+// bisector of the shortest edge at distance beta*l from each endpoint.
+// Returns the closer of {off-center, circumcenter} to the shortest edge.
+// This guarantees the new triangle on the shortest edge has min angle >= theta_min.
+static inline void offcenter(
+    double x0, double y0, double x1, double y1, double x2, double y2,
+    double theta_min_rad,
+    double& ox, double& oy
+) {
+    // Edge vectors from v0
+    double xdo = x1 - x0, ydo = y1 - y0;
+    double xao = x2 - x0, yao = y2 - y0;
+
+    // Squared edge lengths
+    double dodist = xdo * xdo + ydo * ydo;  // |v0-v1|²
+    double aodist = xao * xao + yao * yao;  // |v0-v2|²
+    double dadist = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);  // |v1-v2|²
+
+    // Circumcenter relative to v0
+    double denom = 2.0 * (xdo * yao - xao * ydo);
+    double dx, dy;
+    if (std::abs(denom) < 1e-30) {
+        // Degenerate: use centroid
+        ox = (x0 + x1 + x2) / 3.0;
+        oy = (y0 + y1 + y2) / 3.0;
+        return;
+    }
+    dx = (yao * dodist - ydo * aodist) / denom;
+    dy = (xdo * aodist - xao * dodist) / denom;
+
+    // Off-center constant: 0.475 / tan(theta_min / 2)
+    double goodangle = std::cos(theta_min_rad);
+    double offconst = (goodangle >= 1.0) ? 0.0
+        : 0.475 * std::sqrt((1.0 + goodangle) / (1.0 - goodangle));
+
+    // Find shortest edge and compute off-center on its perpendicular bisector
+    if (dodist <= aodist && dodist <= dadist) {
+        // Shortest: v0-v1
+        double dxoff = 0.5 * xdo - offconst * ydo;
+        double dyoff = 0.5 * ydo + offconst * xdo;
+        // Use off-center if closer to v0 than circumcenter
+        if (dxoff * dxoff + dyoff * dyoff < dx * dx + dy * dy) {
+            dx = dxoff; dy = dyoff;
+        }
+    } else if (aodist <= dadist) {
+        // Shortest: v0-v2
+        double dxoff = 0.5 * xao + offconst * yao;
+        double dyoff = 0.5 * yao - offconst * xao;
+        if (dxoff * dxoff + dyoff * dyoff < dx * dx + dy * dy) {
+            dx = dxoff; dy = dyoff;
+        }
+    } else {
+        // Shortest: v1-v2
+        double xda = x2 - x1, yda = y2 - y1;
+        double dxoff = 0.5 * xda - offconst * yda;
+        double dyoff = 0.5 * yda + offconst * xda;
+        // Off-center relative to v1
+        double cc_from_v1_x = dx - xdo, cc_from_v1_y = dy - ydo;
+        if (dxoff * dxoff + dyoff * dyoff <
+            cc_from_v1_x * cc_from_v1_x + cc_from_v1_y * cc_from_v1_y) {
+            dx = xdo + dxoff; dy = ydo + dyoff;
+        }
+    }
+
+    ox = x0 + dx;
+    oy = y0 + dy;
+}
+
 // Check if point (px, py) is inside a polygon defined by edges
 // Uses ray casting
 static inline bool point_in_polygon(
@@ -172,6 +241,16 @@ static inline bool point_in_polygon(
         }
     }
     return (crossings % 2) == 1;
+}
+
+// Encroachment test: point (px,py) encroaches segment (ax,ay)-(bx,by)
+// iff it lies strictly inside the diametral circle of the segment,
+// i.e. the angle ∠apb > 90° ⟺ dot product (a-p)·(b-p) < 0.
+static inline bool point_encroaches_segment(
+    double px, double py,
+    double ax, double ay, double bx, double by
+) {
+    return (ax - px) * (bx - px) + (ay - py) * (by - py) < 0.0;
 }
 
 // [[Rcpp::export]]
@@ -208,117 +287,222 @@ List cpp_ruppert_refine(
     // Store original constraint edges for encroachment checks
     std::vector<CDT::Edge> original_constraints = constraint_edges;
 
-    int steiner_count = 0;
+    // Shewchuk (1997) Ruppert refinement with off-centers (Üngör 2009):
+    // Phase 1: split ALL encroached segments before touching bad triangles.
+    //          A segment is encroached if any non-endpoint vertex lies inside
+    //          its diametral circle (angle ∠apb > 90°).
+    // Phase 2: find worst bad triangle, compute off-center.
+    //          If it encroaches any segment → split those segments instead.
+    //          Otherwise insert the off-center.
 
-    for (int iter = 0; iter < max_steiner + n_pts; iter++) {
-        // Triangulate
+    int steiner_count = 0;
+    int consecutive_skips = 0;
+    double tol2 = min_dist_tolerance * min_dist_tolerance;
+    bool has_boundary = !constraint_edges.empty();
+
+    for (int iter = 0; iter < max_steiner * 3; iter++) {
+        if (consecutive_skips > 200 || steiner_count >= max_steiner) break;
+
+        // Build CDT with current vertices and constraint edges
         CDT::Triangulation<double> cdt(
             CDT::VertexInsertionOrder::Auto,
             CDT::IntersectingConstraintEdges::TryResolve,
             min_dist_tolerance
         );
         cdt.insertVertices(vertices);
-        if (!constraint_edges.empty()) {
+        if (has_boundary) {
             cdt.insertEdges(constraint_edges);
         }
         cdt.eraseOuterTrianglesAndHoles();
 
-        const auto& tri_verts = cdt.vertices;
-        const auto& triangles = cdt.triangles;
+        const auto& tv = cdt.vertices;
+        const auto& tris = cdt.triangles;
+        if (tris.empty()) break;
 
-        if (triangles.empty()) break;
+        // Sync: adopt any vertices CDT added during constraint resolution
+        for (size_t vi = vertices.size(); vi < tv.size(); vi++) {
+            vertices.push_back(tv[vi]);
+        }
 
-        // Find worst triangle (smallest min angle or largest area)
-        int worst_tri = -1;
-        double worst_angle = M_PI;  // start at max possible
+        // ---- Phase 1: Split encroached segments (priority) ----
+        // All segment encroachments must be resolved before processing
+        // bad triangles. This is the key insight from Shewchuk (1997) that
+        // makes Ruppert refinement work on constrained domains.
+        if (has_boundary) {
+            bool found_encroached = false;
+            for (size_t si = 0; si < constraint_edges.size(); si++) {
+                CDT::VertInd sv1 = constraint_edges[si].v1();
+                CDT::VertInd sv2 = constraint_edges[si].v2();
+                double ax = vertices[sv1].x, ay = vertices[sv1].y;
+                double bx = vertices[sv2].x, by = vertices[sv2].y;
 
-        for (int t = 0; t < (int)triangles.size(); t++) {
-            auto v0 = tri_verts[triangles[t].vertices[0]];
-            auto v1 = tri_verts[triangles[t].vertices[1]];
-            auto v2 = tri_verts[triangles[t].vertices[2]];
+                for (size_t vi = 0; vi < tv.size(); vi++) {
+                    if (vi == sv1 || vi == sv2) continue;
+                    if (!point_encroaches_segment(tv[vi].x, tv[vi].y,
+                                                  ax, ay, bx, by)) continue;
 
-            double dx01 = v1.x - v0.x, dy01 = v1.y - v0.y;
-            double dx12 = v2.x - v1.x, dy12 = v2.y - v1.y;
-            double dx20 = v0.x - v2.x, dy20 = v0.y - v2.y;
+                    // Encroached — split segment at midpoint
+                    double mx = (ax + bx) / 2.0;
+                    double my = (ay + by) / 2.0;
 
-            double l0 = std::sqrt(dx01 * dx01 + dy01 * dy01);
-            double l1 = std::sqrt(dx12 * dx12 + dy12 * dy12);
-            double l2 = std::sqrt(dx20 * dx20 + dy20 * dy20);
+                    // Check proximity to existing vertices
+                    bool too_close = false;
+                    CDT::VertInd close_v = 0;
+                    for (size_t vj = 0; vj < vertices.size(); vj++) {
+                        double ddx = mx - vertices[vj].x;
+                        double ddy = my - vertices[vj].y;
+                        if (ddx * ddx + ddy * ddy < tol2) {
+                            too_close = true;
+                            close_v = static_cast<CDT::VertInd>(vj);
+                            break;
+                        }
+                    }
 
+                    if (too_close && close_v != sv1 && close_v != sv2) {
+                        // Route through existing nearby vertex (no new Steiner)
+                        constraint_edges[si] = CDT::Edge(sv1, close_v);
+                        constraint_edges.push_back(CDT::Edge(close_v, sv2));
+                    } else if (!too_close) {
+                        CDT::VertInd mid = static_cast<CDT::VertInd>(vertices.size());
+                        vertices.push_back(CDT::V2d<double>(mx, my));
+                        constraint_edges[si] = CDT::Edge(sv1, mid);
+                        constraint_edges.push_back(CDT::Edge(mid, sv2));
+                        steiner_count++;
+                    } else {
+                        continue;  // too close to endpoint — try next vertex
+                    }
+                    found_encroached = true;
+                    consecutive_skips = 0;
+                    break;
+                }
+                if (found_encroached) break;
+            }
+            if (found_encroached) continue;  // rebuild CDT, re-check
+        }
+
+        // ---- Phase 2: Refine worst bad triangle ----
+        int worst = -1;
+        double worst_ma = M_PI;
+        for (int t = 0; t < (int)tris.size(); t++) {
+            auto q0 = tv[tris[t].vertices[0]];
+            auto q1 = tv[tris[t].vertices[1]];
+            auto q2 = tv[tris[t].vertices[2]];
+
+            double l0 = std::sqrt((q1.x-q0.x)*(q1.x-q0.x) + (q1.y-q0.y)*(q1.y-q0.y));
+            double l1 = std::sqrt((q2.x-q1.x)*(q2.x-q1.x) + (q2.y-q1.y)*(q2.y-q1.y));
+            double l2 = std::sqrt((q0.x-q2.x)*(q0.x-q2.x) + (q0.y-q2.y)*(q0.y-q2.y));
             if (l0 < 1e-15 || l1 < 1e-15 || l2 < 1e-15) continue;
 
             double ma = min_angle_from_lengths(l0, l1, l2);
+            double area = 0.5 * std::abs(
+                (q1.x-q0.x)*(q2.y-q0.y) - (q2.x-q0.x)*(q1.y-q0.y));
 
-            // Check area constraint
-            double area = 0.5 * std::abs(dx01 * dy12 - dx12 * dy01);
-            bool bad_angle = ma < min_angle_rad;
-            bool bad_area = (max_area > 0) && (area > max_area);
-
-            if ((bad_angle || bad_area) && ma < worst_angle) {
-                worst_angle = ma;
-                worst_tri = t;
-            }
+            bool bad = (min_angle_deg > 0 && ma < min_angle_rad) ||
+                       (max_area > 0 && area > max_area);
+            if (bad && ma < worst_ma) { worst_ma = ma; worst = t; }
         }
+        if (worst < 0) break;  // All triangles satisfy constraints
 
-        if (worst_tri < 0) break;  // All triangles are good
-        if (steiner_count >= max_steiner) break;
+        auto p0 = tv[tris[worst].vertices[0]];
+        auto p1 = tv[tris[worst].vertices[1]];
+        auto p2 = tv[tris[worst].vertices[2]];
 
-        // Compute circumcenter of worst triangle
-        auto wv0 = tri_verts[triangles[worst_tri].vertices[0]];
-        auto wv1 = tri_verts[triangles[worst_tri].vertices[1]];
-        auto wv2 = tri_verts[triangles[worst_tri].vertices[2]];
+        // Compute off-center (Üngör 2009: closer to shortest edge)
+        double ox, oy;
+        offcenter(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, min_angle_rad, ox, oy);
 
-        double cx, cy;
-        circumcenter(wv0.x, wv0.y, wv1.x, wv1.y, wv2.x, wv2.y, cx, cy);
-
-        // Check if circumcenter encroaches on any constraint edge
-        bool encroaches = false;
-        int encroached_edge = -1;
-        for (int e = 0; e < (int)constraint_edges.size(); e++) {
-            auto ev0 = vertices[constraint_edges[e].v1()];
-            auto ev1 = vertices[constraint_edges[e].v2()];
-            // Midpoint and radius of diametral circle
-            double mx = (ev0.x + ev1.x) / 2.0;
-            double my = (ev0.y + ev1.y) / 2.0;
-            double r2 = ((ev1.x - ev0.x) * (ev1.x - ev0.x) +
-                         (ev1.y - ev0.y) * (ev1.y - ev0.y)) / 4.0;
-            double d2 = (cx - mx) * (cx - mx) + (cy - my) * (cy - my);
-            if (d2 < r2 - 1e-15) {
-                encroaches = true;
-                encroached_edge = e;
-                break;
-            }
-        }
-
-        if (encroaches && encroached_edge >= 0) {
-            // Split the encroached segment at its midpoint
-            auto ev0 = vertices[constraint_edges[encroached_edge].v1()];
-            auto ev1 = vertices[constraint_edges[encroached_edge].v2()];
-            double mx = (ev0.x + ev1.x) / 2.0;
-            double my = (ev0.y + ev1.y) / 2.0;
-
-            CDT::VertInd new_idx = static_cast<CDT::VertInd>(vertices.size());
-            vertices.push_back(CDT::V2d<double>(mx, my));
-
-            // Replace the encroached edge with two sub-edges
-            CDT::VertInd old_v1 = constraint_edges[encroached_edge].v1();
-            CDT::VertInd old_v2 = constraint_edges[encroached_edge].v2();
-            constraint_edges[encroached_edge] = CDT::Edge(old_v1, new_idx);
-            constraint_edges.push_back(CDT::Edge(new_idx, old_v2));
-        } else {
-            // Insert circumcenter if inside domain
-            // (For meshes with constraints, check the point is inside the boundary)
-            if (!original_constraints.empty()) {
-                if (!point_in_polygon(cx, cy, vertices, original_constraints)) {
-                    // Skip — circumcenter is outside the domain
-                    // Mark this triangle as acceptable to avoid infinite loop
-                    break;
+        // Check if off-center encroaches any constraint edge
+        if (has_boundary) {
+            std::vector<size_t> encroached_segs;
+            for (size_t e = 0; e < constraint_edges.size(); e++) {
+                double eax = vertices[constraint_edges[e].v1()].x;
+                double eay = vertices[constraint_edges[e].v1()].y;
+                double ebx = vertices[constraint_edges[e].v2()].x;
+                double eby = vertices[constraint_edges[e].v2()].y;
+                if (point_encroaches_segment(ox, oy, eax, eay, ebx, eby)) {
+                    encroached_segs.push_back(e);
                 }
             }
-            vertices.push_back(CDT::V2d<double>(cx, cy));
+
+            if (!encroached_segs.empty()) {
+                // Split ALL encroached segments instead of inserting off-center.
+                // Process in reverse index order to preserve earlier indices
+                // when modifying constraint_edges in-place.
+                std::sort(encroached_segs.rbegin(), encroached_segs.rend());
+                bool any_split = false;
+                for (size_t eidx : encroached_segs) {
+                    if (steiner_count >= max_steiner) break;
+                    CDT::VertInd ev1 = constraint_edges[eidx].v1();
+                    CDT::VertInd ev2 = constraint_edges[eidx].v2();
+                    double mx = (vertices[ev1].x + vertices[ev2].x) / 2.0;
+                    double my = (vertices[ev1].y + vertices[ev2].y) / 2.0;
+
+                    bool too_close = false;
+                    CDT::VertInd close_v = 0;
+                    for (size_t vj = 0; vj < vertices.size(); vj++) {
+                        double ddx = mx - vertices[vj].x;
+                        double ddy = my - vertices[vj].y;
+                        if (ddx * ddx + ddy * ddy < tol2) {
+                            too_close = true;
+                            close_v = static_cast<CDT::VertInd>(vj);
+                            break;
+                        }
+                    }
+
+                    if (too_close && close_v != ev1 && close_v != ev2) {
+                        constraint_edges[eidx] = CDT::Edge(ev1, close_v);
+                        constraint_edges.push_back(CDT::Edge(close_v, ev2));
+                        any_split = true;
+                    } else if (!too_close) {
+                        CDT::VertInd mid = static_cast<CDT::VertInd>(vertices.size());
+                        vertices.push_back(CDT::V2d<double>(mx, my));
+                        constraint_edges[eidx] = CDT::Edge(ev1, mid);
+                        constraint_edges.push_back(CDT::Edge(mid, ev2));
+                        steiner_count++;
+                        any_split = true;
+                    }
+                }
+                if (any_split) { consecutive_skips = 0; continue; }
+                consecutive_skips++;
+                continue;
+            }
+
+            // Off-center doesn't encroach any segment; check domain containment.
+            if (!point_in_polygon(ox, oy, vertices, original_constraints)) {
+                double gx = (p0.x + p1.x + p2.x) / 3.0;
+                double gy = (p0.y + p1.y + p2.y) / 3.0;
+                double lo = 0.0, hi = 1.0;
+                for (int bs = 0; bs < 20; bs++) {
+                    double mid_t = (lo + hi) / 2.0;
+                    double tx = gx + mid_t * (ox - gx);
+                    double ty = gy + mid_t * (oy - gy);
+                    if (point_in_polygon(tx, ty, vertices, original_constraints))
+                        lo = mid_t;
+                    else
+                        hi = mid_t;
+                }
+                if (lo > 0.01) {
+                    ox = gx + lo * (ox - gx);
+                    oy = gy + lo * (oy - gy);
+                } else {
+                    consecutive_skips++;
+                    continue;
+                }
+            }
         }
 
+        // Check proximity to existing vertices
+        bool close = false;
+        for (size_t vi = 0; vi < vertices.size(); vi++) {
+            double ddx = ox - vertices[vi].x, ddy = oy - vertices[vi].y;
+            if (ddx * ddx + ddy * ddy < tol2) { close = true; break; }
+        }
+        if (close) { consecutive_skips++; continue; }
+
+        // Insert off-center
+        vertices.push_back(CDT::V2d<double>(ox, oy));
         steiner_count++;
+        consecutive_skips = 0;
     }
 
     // Final triangulation
