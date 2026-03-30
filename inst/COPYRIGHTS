@@ -6,9 +6,8 @@ CDT (Constrained Delaunay Triangulation)
   License: Mozilla Public License 2.0 (MPL-2.0)
   Files: src/cdt/CDT.h, src/cdt/CDT.hpp, src/cdt/CDTUtils.h,
          src/cdt/CDTUtils.hpp, src/cdt/KDTree.h, src/cdt/LocatorKDTree.h,
-         src/cdt/portable_nth_element.hpp, src/cdt/predicates.h,
-         src/cdt/remove_at.hpp, src/cdt/Triangulation.h,
-         src/cdt/Triangulation.hpp
+         src/cdt/portable_nth_element.hpp, src/cdt/remove_at.hpp,
+         src/cdt/Triangulation.h, src/cdt/Triangulation.hpp
 
   CDT is a C++ header-only library for constrained Delaunay triangulation.
   It is used unmodified as a compile-time dependency. Per MPL-2.0 Section
@@ -17,3 +16,13 @@ CDT (Constrained Delaunay Triangulation)
   within src/cdt/ remain under MPL-2.0. This is permitted under MPL-2.0
   Section 3.3 ("Larger Work") which allows combining MPL-licensed files
   with files under a different license.
+
+Geometric Predicates
+  Author: William C. Lenthe
+  Source: https://github.com/artem-ogre/CDT (vendored as part of CDT)
+  License: BSD-3-Clause
+  Files: src/cdt/predicates.h
+
+  Robust geometric predicates for computational geometry. Included as part
+  of the CDT library. Copyright (c) 2019 William C. Lenthe. Distributed
+  under the BSD 3-Clause License (see file header for full text).

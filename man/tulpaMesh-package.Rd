@@ -6,7 +6,7 @@
 \alias{tulpaMesh-package}
 \title{tulpaMesh: Constrained Delaunay Triangulation Meshes for Spatial 'SPDE' Models}
 \description{
-Generate constrained Delaunay triangulation meshes for use with stochastic partial differential equation (SPDE) spatial models ('Lindgren', 'Rue' and 'Lindstroem' 2011 \doi{10.1111/j.1467-9868.2011.00777.x}). Provides automatic mesh generation from point coordinates with boundary constraints, 'Ruppert' refinement for mesh quality, finite element method (FEM) matrix assembly (mass, stiffness, projection), barrier models, spherical meshes via icosahedral subdivision, and metric graph meshes for network geometries. Built on the 'CDT' header-only 'C++' library ('Amirkhanov' 2024 \url{https://github.com/artem-ogre/CDT}). Designed as the mesh backend for the 'tulpa' Bayesian hierarchical modelling engine but usable standalone for any spatial triangulation task.
+Generate constrained Delaunay triangulation meshes for use with stochastic partial differential equation (SPDE) spatial models (Lindgren, Rue and Lindstroem 2011 \doi{10.1111/j.1467-9868.2011.00777.x}). Provides automatic mesh generation from point coordinates with boundary constraints, Ruppert refinement for mesh quality, finite element method (FEM) matrix assembly (mass, stiffness, projection), barrier models, spherical meshes via icosahedral subdivision, and metric graph meshes for network geometries. Built on the 'CDT' header-only C++ library (Amirkhanov 2024 \url{https://github.com/artem-ogre/CDT}). Designed as the mesh backend for the 'tulpa' Bayesian hierarchical modelling engine but usable standalone for any spatial triangulation task.
 }
 \seealso{
 Useful links:
@@ -18,6 +18,12 @@ Useful links:
 }
 \author{
 \strong{Maintainer}: Gilles Colling \email{gilles.colling051@gmail.com} (\href{https://orcid.org/0000-0003-3070-6066}{ORCID}) [copyright holder]
+
+Other contributors:
+\itemize{
+  \item Artem Amirkhanov (CDT library (src/cdt/, MPL-2.0)) [contributor, copyright holder]
+  \item William C. Lenthe (Geometric predicates (src/cdt/predicates.h, BSD-3-Clause)) [contributor, copyright holder]
+}
 
 }
 \keyword{internal}

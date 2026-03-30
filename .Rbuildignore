@@ -24,3 +24,4 @@
 ^src/.*\.dll$
 ^CODE_OF_CONDUCT\.md$
 ^CONTRIBUTING\.md$
+^build_site\.R$

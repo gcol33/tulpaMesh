@@ -1,3 +1,11 @@
+# tulpaMesh 0.1.1
+
+* Removed single quotes from person names and algorithm names in DESCRIPTION
+  Title and Description fields per CRAN policy.
+* Added Artem Amirkhanov (CDT library) and William C. Lenthe (predicates.h)
+  to Authors@R with ctb and cph roles.
+* Updated inst/COPYRIGHTS to separately document predicates.h (BSD-3-Clause).
+
 # tulpaMesh 0.1.0
 
 Initial CRAN release.
