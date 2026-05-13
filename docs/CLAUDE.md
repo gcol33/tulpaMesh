@@ -129,6 +129,6 @@ R before
 
 ## Ecosystem
 
-tulpaMesh → tulpa (SPDE Q-builder, Laplace solver) → tulpaOcc (occupancy
+tulpaMesh → tulpa (SPDE Q-builder, Laplace solver) → tulpaObs (occupancy
 models with spatial fields). Positioned as CRAN-publishable alternative
 to fmesher/INLA mesh tooling.

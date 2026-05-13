@@ -208,12 +208,12 @@ tulpaMesh (mesh + FEM)
     ↓ hard dep
 tulpa (SPDE Q-builder + CHOLMOD + nested Laplace)
     ↓ hard dep
-tulpaOcc (occupancy models with SPDE spatial fields)
+tulpaObs (occupancy models with SPDE spatial fields)
 ```
 
 User sees:
 ```r
-library(tulpaOcc)
+library(tulpaObs)
 fit <- occ(~ elevation, ~ 1, data = survey_data,
            spatial = spatial_spde(coords = ~ x + y, max_edge = c(0.5, 2)))
 ```
@@ -237,7 +237,7 @@ Under the hood:
 | Nested Laplace | Yes | Yes (built) | No | No |
 | CHOLMOD solver | PARDISO (proprietary) | CHOLMOD (MIT, ships with R) | No | Eigen |
 | CRAN | No | Yes | Yes | Yes |
-| Occupancy models | Via inlaOcc | tulpaOcc (native) | Native | Manual |
+| Occupancy models | Via inlaOcc | tulpaObs (native) | Native | Manual |
 | GPU | No | Planned (NNGP batching) | No | No |
 
 **Key differentiator:** tulpa would be the only CRAN-available engine offering rational SPDE + nested Laplace + estimated Matérn smoothness + occupancy models in a single install.

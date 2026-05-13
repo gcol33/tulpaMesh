@@ -214,10 +214,10 @@ tulpa SPDE Q-builder        ← lives in tulpa, not here</code></pre>
     ↓ hard dep
 tulpa (SPDE Q-builder + CHOLMOD + nested Laplace)
     ↓ hard dep
-tulpaOcc (occupancy models with SPDE spatial fields)</code></pre>
+tulpaObs (occupancy models with SPDE spatial fields)</code></pre>
 <p>User sees:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">tulpaOcc</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">tulpaObs</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">occ</span><span class="op">(</span><span class="op">~</span> <span class="va">elevation</span>, <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">survey_data</span>,</span>
 <span>           spatial <span class="op">=</span> <span class="fu">spatial_spde</span><span class="op">(</span>coords <span class="op">=</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="va">y</span>, max_edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Under the hood: 1. <code>spatial_spde()</code> calls <code><a href="reference/tulpa_mesh.html">tulpaMesh::tulpa_mesh()</a></code> → mesh 2. <code>spatial_spde()</code> calls <code><a href="reference/fem_matrices.html">tulpaMesh::fem_matrices()</a></code> → C, G, A 3. <code>occ()</code> calls tulpa’s <code>cpp_laplace_fit_spde()</code> or <code>cpp_nested_laplace_spde()</code> → fit 4. CHOLMOD handles all sparse solves</p>
@@ -266,7 +266,7 @@ tulpaOcc (occupancy models with SPDE spatial fields)</code></pre>
 <td>Yes</td>
 </tr><tr><td>Occupancy models</td>
 <td>Via inlaOcc</td>
-<td>tulpaOcc (native)</td>
+<td>tulpaObs (native)</td>
 <td>Native</td>
 <td>Manual</td>
 </tr><tr><td>GPU</td>

@@ -111,4 +111,4 @@ R input is 1-based → converted to 0-based for CDT → output converted back to
 
 ## Ecosystem
 
-tulpaMesh → tulpa (SPDE Q-builder, Laplace solver) → tulpaOcc (occupancy models with spatial fields). Positioned as CRAN-publishable alternative to fmesher/INLA mesh tooling.
+tulpaMesh → tulpa (SPDE Q-builder, Laplace solver) → tulpaObs (occupancy models with spatial fields). Positioned as CRAN-publishable alternative to fmesher/INLA mesh tooling.
