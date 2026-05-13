@@ -128,7 +128,14 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
     boundary_edges <- make_edge_loop(bnd_start, n_bnd)
   }
 
-  # Add refinement points if max_edge is specified
+  # Add refinement points if max_edge is specified. Track the number of
+  # "protected" points (coords + boundary + holes) added BEFORE the hex
+  # lattice — those are referenced by boundary_edges and must not be
+  # dropped by dedup, or the constraint loop breaks and the constrained
+  # Delaunay erases every triangle as "outer". Hex points are added last
+  # and are the only ones that may safely be deduplicated against
+  # previously-placed vertices.
+  n_protected <- nrow(all_points)
   if (!is.null(max_edge)) {
     me <- max_edge[1]
     xr <- range(all_points[, 1])
@@ -138,28 +145,38 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
     all_points <- rbind(all_points, grid_pts)
   }
 
-  # Remove near-duplicate points (always deduplicate when max_edge is used,
-  # since hex lattice can produce exact duplicates with boundary vertices)
-  # Dedup tolerance: fraction of max_edge to prevent near-duplicate lattice/input overlap
-  dedup_tol <- if (!is.null(max_edge) && cutoff == 0) max_edge[1] * 0.3 else cutoff
-  if (dedup_tol > 0) {
+  # Remove near-duplicate points. Two distinct cases:
+  #   1. cutoff > 0: user-requested merge tolerance applied to coords +
+  #      boundary together (legacy behavior).
+  #   2. cutoff == 0 with max_edge supplied: dedup only the hex-lattice
+  #      tail against previously-placed points. Never drop a protected
+  #      vertex referenced by boundary_edges.
+  if (cutoff > 0) {
     keep <- rep(TRUE, nrow(all_points))
     for (i in 2:nrow(all_points)) {
       if (!keep[i]) next
       dists <- sqrt(rowSums((all_points[1:(i-1), , drop = FALSE] -
                                matrix(all_points[i, ], nrow = i-1, ncol = 2, byrow = TRUE))^2))
-      if (any(dists[keep[1:(i-1)]] < dedup_tol)) keep[i] <- FALSE
+      if (any(dists[keep[1:(i-1)]] < cutoff)) keep[i] <- FALSE
     }
-    # Remap boundary edges if points were removed
     if (!is.null(boundary_edges) && any(!keep)) {
-      remap <- cumsum(keep)
-      remap[!keep] <- 0L
+      remap <- cumsum(keep); remap[!keep] <- 0L
       boundary_edges[, 1] <- remap[boundary_edges[, 1]]
       boundary_edges[, 2] <- remap[boundary_edges[, 2]]
-      # Remove edges referencing removed points
       valid <- boundary_edges[, 1] > 0 & boundary_edges[, 2] > 0
       boundary_edges <- boundary_edges[valid, , drop = FALSE]
     }
+    all_points <- all_points[keep, , drop = FALSE]
+  } else if (!is.null(max_edge) && nrow(all_points) > n_protected) {
+    hex_tol <- max_edge[1] * 0.3
+    keep <- rep(TRUE, nrow(all_points))
+    for (i in (n_protected + 1L):nrow(all_points)) {
+      dists <- sqrt(rowSums((all_points[1:(i-1), , drop = FALSE] -
+                               matrix(all_points[i, ], nrow = i-1, ncol = 2, byrow = TRUE))^2))
+      if (any(dists[keep[1:(i-1)]] < hex_tol)) keep[i] <- FALSE
+    }
+    # boundary_edges indices reference only protected points, which are
+    # all kept; no remap needed.
     all_points <- all_points[keep, , drop = FALSE]
   }
 
