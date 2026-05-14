@@ -67,3 +67,35 @@ test_that("print method works", {
   mesh <- tulpa_mesh(cbind(runif(20), runif(20)))
   expect_output(print(mesh), "tulpa_mesh")
 })
+
+# Regression test for gcol33/tulpaMesh#2 — cutoff > 0 collapsed the
+# constraint loop and produced 0 triangles.
+test_that("cutoff > 0 still produces a valid triangulation", {
+  set.seed(11)
+  coords <- cbind(runif(200), runif(200))
+
+  cases <- list(
+    list(cutoff = 0.05),
+    list(cutoff = 0.05, max_edge = c(0.15, 0.4)),
+    list(cutoff = 0.1,  max_edge = c(0.15, 0.4)),
+    list(cutoff = 0.05, max_edge = 0.4)
+  )
+
+  for (args in cases) {
+    mesh <- do.call(tulpa_mesh, c(list(coords = coords), args))
+    label <- paste(names(args), unlist(args), sep = "=", collapse = ", ")
+    expect_gt(mesh$n_triangles, 0L, label = label)
+    expect_true(all(mesh$triangles >= 1), label = label)
+    expect_true(all(mesh$triangles <= mesh$n_vertices), label = label)
+  }
+})
+
+test_that("fem_matrices errors on a mesh with 0 triangles", {
+  mesh <- structure(
+    list(vertices = cbind(c(0, 1, 0), c(0, 0, 1)),
+         triangles = matrix(integer(0), ncol = 3),
+         n_vertices = 3L, n_triangles = 0L),
+    class = "tulpa_mesh"
+  )
+  expect_error(fem_matrices(mesh), "0 triangles")
+})

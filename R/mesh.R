@@ -128,14 +128,12 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
     boundary_edges <- make_edge_loop(bnd_start, n_bnd)
   }
 
-  # Add refinement points if max_edge is specified. Track the number of
-  # "protected" points (coords + boundary + holes) added BEFORE the hex
-  # lattice — those are referenced by boundary_edges and must not be
-  # dropped by dedup, or the constraint loop breaks and the constrained
-  # Delaunay erases every triangle as "outer". Hex points are added last
-  # and are the only ones that may safely be deduplicated against
-  # previously-placed vertices.
-  n_protected <- nrow(all_points)
+  # Add refinement points if max_edge is specified. Track the boundary +
+  # hole range so dedup never drops a constraint-edge endpoint — dropping
+  # one collapses the constraint loop and CDT's eraseOuterTrianglesAndHoles
+  # then wipes every triangle as "outer".
+  n_coord <- nrow(coord_mat)
+  n_protected <- nrow(all_points)   # coords + boundary + holes (pre-hex)
   if (!is.null(max_edge)) {
     me <- max_edge[1]
     xr <- range(all_points[, 1])
@@ -145,39 +143,24 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
     all_points <- rbind(all_points, grid_pts)
   }
 
-  # Remove near-duplicate points. Two distinct cases:
-  #   1. cutoff > 0: user-requested merge tolerance applied to coords +
-  #      boundary together (legacy behavior).
-  #   2. cutoff == 0 with max_edge supplied: dedup only the hex-lattice
-  #      tail against previously-placed points. Never drop a protected
-  #      vertex referenced by boundary_edges.
-  if (cutoff > 0) {
-    keep <- rep(TRUE, nrow(all_points))
-    for (i in 2:nrow(all_points)) {
-      if (!keep[i]) next
-      dists <- sqrt(rowSums((all_points[1:(i-1), , drop = FALSE] -
-                               matrix(all_points[i, ], nrow = i-1, ncol = 2, byrow = TRUE))^2))
-      if (any(dists[keep[1:(i-1)]] < cutoff)) keep[i] <- FALSE
-    }
-    if (!is.null(boundary_edges) && any(!keep)) {
-      remap <- cumsum(keep); remap[!keep] <- 0L
-      boundary_edges[, 1] <- remap[boundary_edges[, 1]]
-      boundary_edges[, 2] <- remap[boundary_edges[, 2]]
-      valid <- boundary_edges[, 1] > 0 & boundary_edges[, 2] > 0
-      boundary_edges <- boundary_edges[valid, , drop = FALSE]
-    }
-    all_points <- all_points[keep, , drop = FALSE]
-  } else if (!is.null(max_edge) && nrow(all_points) > n_protected) {
-    hex_tol <- max_edge[1] * 0.3
-    keep <- rep(TRUE, nrow(all_points))
-    for (i in (n_protected + 1L):nrow(all_points)) {
-      dists <- sqrt(rowSums((all_points[1:(i-1), , drop = FALSE] -
-                               matrix(all_points[i, ], nrow = i-1, ncol = 2, byrow = TRUE))^2))
-      if (any(dists[keep[1:(i-1)]] < hex_tol)) keep[i] <- FALSE
-    }
-    # boundary_edges indices reference only protected points, which are
-    # all kept; no remap needed.
-    all_points <- all_points[keep, , drop = FALSE]
+  # Dedup pass: boundary/hole vertices are protected; coords and hex points
+  # may be merged. `cutoff` sets the user-facing merge tolerance for coords
+  # (and tightens hex dedup when larger). When cutoff == 0 and max_edge is
+  # supplied, the hex tail is still deduplicated at max_edge[1] * 0.3 to
+  # avoid hex/boundary coincidence.
+  hex_tol_default <- if (!is.null(max_edge)) max_edge[1] * 0.3 else 0
+  need_dedup <- cutoff > 0 || hex_tol_default > 0
+  if (need_dedup) {
+    dedup <- dedup_with_protected(
+      all_points,
+      n_coord = n_coord,
+      n_protected = n_protected,
+      tol_coord = cutoff,
+      tol_hex = max(cutoff, hex_tol_default),
+      boundary_edges = boundary_edges
+    )
+    all_points <- dedup$points
+    boundary_edges <- dedup$boundary_edges
   }
 
   # Triangulate
@@ -188,23 +171,6 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
     xr <- range(all_points[, 1]); yr <- range(all_points[, 2])
     diam <- sqrt(diff(xr)^2 + diff(yr)^2)
     dist_tol <- max(cutoff, diam * 1e-8, 1e-12)
-
-    # Deduplicate points within dist_tol (grid + boundary overlap)
-    keep <- rep(TRUE, nrow(all_points))
-    for (i in 2:nrow(all_points)) {
-      if (!keep[i]) next
-      dists <- sqrt(rowSums((all_points[1:(i-1), , drop = FALSE] -
-                               matrix(all_points[i, ], nrow = i-1, ncol = 2, byrow = TRUE))^2))
-      if (any(dists[keep[1:(i-1)]] < dist_tol)) keep[i] <- FALSE
-    }
-    if (any(!keep) && !is.null(boundary_edges)) {
-      remap <- cumsum(keep); remap[!keep] <- 0L
-      boundary_edges[, 1] <- remap[boundary_edges[, 1]]
-      boundary_edges[, 2] <- remap[boundary_edges[, 2]]
-      valid <- boundary_edges[, 1] > 0 & boundary_edges[, 2] > 0
-      boundary_edges <- boundary_edges[valid, , drop = FALSE]
-    }
-    all_points <- all_points[keep, , drop = FALSE]
 
     result <- cpp_ruppert_refine(
       points = all_points,
@@ -264,6 +230,16 @@ fem_matrices <- function(mesh, obs_coords = NULL, barrier = NULL,
                         parallel = FALSE, lumped = FALSE) {
   if (!inherits(mesh, "tulpa_mesh")) {
     stop("mesh must be a tulpa_mesh object")
+  }
+
+  # A mesh with zero triangles produces all-zero C and G, which silently
+  # collapses downstream SPDE precision builds to a theta-independent ridge.
+  # Fail loudly here instead.
+  if (is.null(mesh$triangles) || nrow(mesh$triangles) == 0L) {
+    stop("mesh has 0 triangles; cannot assemble FEM matrices. ",
+         "This usually means the constraint loop collapsed during ",
+         "triangulation. Check the boundary, cutoff, and max_edge ",
+         "arguments to tulpa_mesh().")
   }
 
   # Compute C and G — dispatch based on mesh type and parallel flag
@@ -448,6 +424,56 @@ ring_area <- function(ring) {
   x <- ring[, 1]
   y <- ring[, 2]
   abs(sum(x * c(y[-1], y[1]) - c(x[-1], x[1]) * y)) / 2
+}
+
+# Deduplicate `points` so that:
+#   - Boundary + hole rows (indices coord_n+1 .. protected_n) are never
+#     dropped (they are constraint-edge endpoints).
+#   - Coord rows (1 .. coord_n) may be dropped when within `tol_coord` of a
+#     boundary point or an earlier kept coord.
+#   - Hex rows (protected_n+1 .. nrow(points)) may be dropped when within
+#     `tol_hex` of any earlier kept point.
+# Iteration order is boundary -> coords -> hex so boundary always wins when
+# a coord and a boundary point coincide (the coord is dropped, the
+# constraint endpoint survives). Returns the dedupped points and the
+# boundary_edges with indices remapped to the new row positions.
+dedup_with_protected <- function(points, n_coord, n_protected,
+                                 tol_coord, tol_hex, boundary_edges) {
+  n <- nrow(points)
+  boundary_idx <- if (n_protected > n_coord) seq.int(n_coord + 1L, n_protected) else integer(0)
+  coord_idx <- if (n_coord >= 1L) seq_len(n_coord) else integer(0)
+  hex_idx <- if (n > n_protected) seq.int(n_protected + 1L, n) else integer(0)
+
+  order_idx <- c(boundary_idx, coord_idx, hex_idx)
+  n_bnd <- length(boundary_idx)
+  n_bnd_coord <- n_bnd + length(coord_idx)
+
+  keep <- rep(TRUE, n)
+  if (length(order_idx) >= 2L && (tol_coord > 0 || tol_hex > 0)) {
+    for (k in seq.int(2L, length(order_idx))) {
+      i <- order_idx[k]
+      if (k <= n_bnd) next  # protected: constraint endpoint
+      tol_i <- if (k <= n_bnd_coord) tol_coord else tol_hex
+      if (tol_i <= 0) next
+      earlier <- order_idx[seq_len(k - 1L)]
+      kept_earlier <- earlier[keep[earlier]]
+      if (!length(kept_earlier)) next
+      diffs <- points[kept_earlier, , drop = FALSE] -
+        matrix(points[i, ], nrow = length(kept_earlier), ncol = 2L, byrow = TRUE)
+      if (any(sqrt(rowSums(diffs^2)) < tol_i)) keep[i] <- FALSE
+    }
+  }
+
+  if (!is.null(boundary_edges) && any(!keep)) {
+    remap <- cumsum(keep); remap[!keep] <- 0L
+    boundary_edges[, 1] <- remap[boundary_edges[, 1]]
+    boundary_edges[, 2] <- remap[boundary_edges[, 2]]
+    valid <- boundary_edges[, 1] > 0 & boundary_edges[, 2] > 0
+    boundary_edges <- boundary_edges[valid, , drop = FALSE]
+  }
+
+  list(points = points[keep, , drop = FALSE],
+       boundary_edges = boundary_edges)
 }
 
 # Build an edge loop connecting consecutive 1-based vertex indices
