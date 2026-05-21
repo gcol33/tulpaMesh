@@ -92,7 +92,7 @@ Development version:
 
 ``` r
 
-# install.packages("pak")
+install.packages("pak")
 pak::pak("gcol33/tulpaMesh")
 ```
 
