@@ -1,6 +1,6 @@
 # tulpaMesh
 
-*a mesh from your scattered points*
+*a mesh from scattered points*
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/gcol33/tulpaMesh/actions/workflows/R-CMD-check.yml/badge.svg)](https://github.com/gcol33/tulpaMesh/actions/workflows/R-CMD-check.yml)
