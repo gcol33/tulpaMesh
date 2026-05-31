@@ -2,16 +2,20 @@
 
 0 errors | 0 warnings | 0 notes
 
-* Resubmission addressing reviewer feedback (Benjamin Altmann, 2026-03-30).
+* Patch release fixing two latent bugs in mesh refinement.
 
-## Changes since last submission
+## Changes since last submission (0.1.1 -> 0.1.2)
 
-* Removed single quotes from person names and algorithm names in Title and
-  Description fields. Only package/software/API names remain quoted.
-* Added Artem Amirkhanov (CDT library, MPL-2.0) and William C. Lenthe
-  (predicates.h, BSD-3-Clause) to Authors@R with ctb and cph roles.
-* Updated inst/COPYRIGHTS to separately document William C. Lenthe's
-  geometric predicates code (src/cdt/predicates.h).
+* Fixed `tulpa_mesh(max_edge = ...)` collapsing to zero triangles for some
+  `(max_edge, cutoff)` settings and point counts. Vertex deduplication could
+  merge extended-hull boundary vertices that fell within `max_edge * 0.3` of
+  each other, deleting a constraint edge and leaving the boundary loop open;
+  the constrained triangulation then erased every triangle. Boundary and hole
+  vertices are now protected from deduplication so the constraint loop stays
+  closed.
+* `tulpa_mesh()` now errors loudly when the triangulation yields zero
+  triangles (for example a collinear point set) instead of returning an empty
+  mesh that silently produces all-zero FEM matrices.
 
 ## Test environments
 
