@@ -1,6 +1,6 @@
 Package: tulpaMesh
 Title: Constrained Delaunay Triangulation Meshes for Spatial 'SPDE' Models
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
     person("Gilles", "Colling", email = "gilles.colling051@gmail.com",
            role = c("aut", "cre", "cph"),

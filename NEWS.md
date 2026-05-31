@@ -1,3 +1,16 @@
+# tulpaMesh 0.1.2
+
+* Fixed `tulpa_mesh(max_edge = ...)` collapsing to zero triangles for some
+  `(max_edge, cutoff)` settings and point counts. Vertex deduplication could
+  merge extended-hull boundary vertices that fell within `max_edge * 0.3` of
+  each other, deleting a constraint edge and leaving the boundary loop open;
+  the constrained triangulation then erased every triangle. Boundary and hole
+  vertices are now protected from deduplication so the constraint loop stays
+  closed.
+* `tulpa_mesh()` now errors loudly when the triangulation yields zero
+  triangles (for example a collinear point set) instead of returning an empty
+  mesh that silently produces all-zero FEM matrices.
+
 # tulpaMesh 0.1.1
 
 * Removed single quotes from person names and algorithm names in DESCRIPTION

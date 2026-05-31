@@ -188,6 +188,16 @@ tulpa_mesh <- function(coords, data = NULL, boundary = NULL,
     )
   }
 
+  # A constrained triangulation that erases every triangle as "outer" leaves
+  # an empty mesh. Downstream FEM assembly would then produce all-zero C and G
+  # and a theta-independent SPDE precision. Fail loudly here instead of
+  # returning a degenerate mesh.
+  if (is.null(result$triangles) || nrow(result$triangles) == 0L) {
+    stop("tulpa_mesh() produced 0 triangles. The constrained triangulation ",
+         "erased every triangle, which usually means the boundary/constraint ",
+         "loop collapsed. Check the boundary, cutoff, and max_edge arguments.")
+  }
+
   result <- structure(result, class = "tulpa_mesh")
   if (!is.null(input_crs)) result$crs <- input_crs
   result
