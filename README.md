@@ -1,5 +1,7 @@
 # tulpaMesh
 
+> Small exact engines for scientific computing in R.
+
 *a mesh from scattered points*
 
 <!-- badges: start -->
