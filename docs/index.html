@@ -39,7 +39,7 @@
 
     <a class="navbar-brand me-2" href="index.html">tulpaMesh</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,172 +80,108 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-<div class="section level1">
+  <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="tulpamesh">tulpaMesh<a class="anchor" aria-label="anchor" href="#tulpamesh"></a>
 </h1></div>
-<p><strong>Spatial meshes and FEM matrices for SPDE models, from point clouds to precision matrices in three lines.</strong></p>
-<div class="section level2">
-<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
-</h2>
+<blockquote>
+<p>Small exact engines for scientific computing in R.</p>
+</blockquote>
+<p><em>a mesh from scattered points</em></p>
+<!-- badges: start -->
+
+<p><strong>Spatial meshes and finite-element matrices for SPDE models, built on a constrained Delaunay triangulation in C++.</strong></p>
+<p>Hand it a point cloud. <code>tulpaMesh</code> triangulates it, refines the triangles to a guaranteed minimum angle (Ruppert), and assembles the mass, stiffness, and projection matrices the SPDE approach (Lindgren, Rue &amp; Lindstrom 2011) needs. The triangulation runs on the <a href="https://github.com/artem-ogre/CDT" class="external-link">CDT</a> header-only library with exact geometric predicates; the FEM assembly has no dependency beyond Rcpp and Matrix. It is the mesh backend for the <code>tulpa</code> Bayesian engine and runs standalone for any spatial triangulation task.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/gcol33/tulpaMesh">tulpaMesh</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tulpa_mesh.html">tulpa_mesh</a></span><span class="op">(</span><span class="va">coords</span>, max_edge <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
-<span><span class="va">fem</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh</span>, obs_coords <span class="op">=</span> <span class="va">coords</span><span class="op">)</span></span>
-<span><span class="co"># fem$C (mass), fem$G (stiffness), fem$A (projection) ready for SPDE</span></span></code></pre></div>
+<span><span class="va">mesh</span>   <span class="op">&lt;-</span> <span class="fu"><a href="reference/tulpa_mesh.html">tulpa_mesh</a></span><span class="op">(</span><span class="va">coords</span>, max_edge <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
+<span><span class="va">fem</span>    <span class="op">&lt;-</span> <span class="fu"><a href="reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh</span>, obs_coords <span class="op">=</span> <span class="va">coords</span><span class="op">)</span></span>
+<span><span class="co"># fem$C (mass), fem$G (stiffness), fem$A (projection), ready for SPDE</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="drop-in-for-fmesher">Drop-in for fmesher<a class="anchor" aria-label="anchor" href="#drop-in-for-fmesher"></a>
+</h2>
+<p>If you already build SPDE meshes with <code>fmesher</code>, convert an existing mesh and get the same C, G, and A matrices:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://inlabru-org.github.io/fmesher/" class="external-link">fmesher</a></span><span class="op">)</span></span>
+<span><span class="va">fm</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_mesh_2d.html" class="external-link">fm_mesh_2d</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">coords</span>, max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tm</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/as_tulpa_mesh.html">as_tulpa_mesh</a></span><span class="op">(</span><span class="va">fm</span><span class="op">)</span>        <span class="co"># direct conversion</span></span>
+<span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">tm</span><span class="op">)</span>         <span class="co"># same C, G, A</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="statement-of-need">Statement of Need<a class="anchor" aria-label="anchor" href="#statement-of-need"></a>
+<h2 id="mesh-generation">Mesh generation<a class="anchor" aria-label="anchor" href="#mesh-generation"></a>
 </h2>
-<p>Spatial models based on the SPDE approach (Lindgren, Rue &amp; Lindstrom 2011) need a triangulated mesh and finite element matrices. tulpaMesh handles mesh generation, quality refinement, and FEM matrix assembly with no external dependencies beyond Rcpp and Matrix.</p>
-<p>Common applications:</p>
 <ul>
-<li>Species distribution models with spatial random effects</li>
-<li>Geostatistical models with Matern covariance via SPDE</li>
-<li>Occupancy models with spatially structured detection</li>
-<li>Any Bayesian hierarchical model needing a spatial mesh</li>
+<li>
+<code><a href="reference/tulpa_mesh.html">tulpa_mesh()</a></code>: constrained Delaunay from points, a <code>~ x + y</code> formula, or an <code>sf</code> boundary (POLYGON, MULTIPOLYGON, holes). Ruppert refinement via <code>min_angle</code> and <code>max_area</code>; hexagonal-lattice density via <code>max_edge</code>.</li>
+<li>
+<code><a href="reference/tulpa_mesh_sphere.html">tulpa_mesh_sphere()</a></code>: icosahedral geodesic meshes with 3D surface FEM, for global-scale models.</li>
+<li>
+<code><a href="reference/tulpa_mesh_1d.html">tulpa_mesh_1d()</a></code>: temporal meshes with tridiagonal FEM, for space-time SPDE.</li>
+<li>
+<code><a href="reference/tulpa_mesh_graph.html">tulpa_mesh_graph()</a></code>: metric-graph meshes for river and road networks.</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
+<h2 id="fem-assembly">FEM assembly<a class="anchor" aria-label="anchor" href="#fem-assembly"></a>
 </h2>
-<div class="section level3">
-<h3 id="mesh-generation">Mesh Generation<a class="anchor" aria-label="anchor" href="#mesh-generation"></a>
-</h3>
+<p><code><a href="reference/fem_matrices.html">fem_matrices()</a></code> returns the mass (C), stiffness (G), and projection (A) sparse matrices. The options cover the cases SPDE work runs into:</p>
 <ul>
 <li>
-<code><a href="reference/tulpa_mesh.html">tulpa_mesh()</a></code> - Constrained Delaunay from points, formulas, or sf boundaries</li>
+<code>lumped = TRUE</code>: diagonal mass matrix for the SPDE Q-builder.</li>
 <li>
-<code><a href="reference/tulpa_mesh_sphere.html">tulpa_mesh_sphere()</a></code> - Icosahedral geodesic meshes for global-scale models</li>
+<code>parallel = TRUE</code>: multithreaded assembly via RcppParallel/TBB.</li>
 <li>
-<code><a href="reference/tulpa_mesh_1d.html">tulpa_mesh_1d()</a></code> - Temporal meshes for space-time SPDE</li>
+<code>barrier = ...</code>: barrier models (Bakka et al. 2019), where the field cannot cross a region such as a coastline.</li>
 <li>
-<code><a href="reference/tulpa_mesh_graph.html">tulpa_mesh_graph()</a></code> - Network meshes for river/road SPDE</li>
+<code><a href="reference/fem_matrices_p2.html">fem_matrices_p2()</a></code>: quadratic (P2) elements on 6-node triangles for higher accuracy.</li>
+<li>
+<code><a href="reference/fem_matrices_nonstationary.html">fem_matrices_nonstationary()</a></code>: spatially varying range and variance.</li>
 </ul>
 </div>
-<div class="section level3">
-<h3 id="fem-assembly">FEM Assembly<a class="anchor" aria-label="anchor" href="#fem-assembly"></a>
-</h3>
+<div class="section level2">
+<h2 id="barrier-model-on-a-coastline">Barrier model on a coastline<a class="anchor" aria-label="anchor" href="#barrier-model-on-a-coastline"></a>
+</h2>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">barrier</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_polygon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>,<span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>,<span class="fl">7</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">7</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">bt</span>      <span class="op">&lt;-</span> <span class="fu"><a href="reference/barrier_triangles.html">barrier_triangles</a></span><span class="op">(</span><span class="va">mesh</span>, <span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="va">barrier</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fem</span>     <span class="op">&lt;-</span> <span class="fu"><a href="reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh</span>, barrier <span class="op">=</span> <span class="va">bt</span><span class="op">)</span></span>
+<span><span class="co"># fem$G carries zero stiffness across the barrier triangles</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="quality-diagnostics-and-mesh-operations">Quality, diagnostics, and mesh operations<a class="anchor" aria-label="anchor" href="#quality-diagnostics-and-mesh-operations"></a>
+</h2>
 <ul>
 <li>
-<code><a href="reference/fem_matrices.html">fem_matrices()</a></code> - Mass (C), stiffness (G), and projection (A) matrices</li>
+<code><a href="reference/mesh_quality.html">mesh_quality()</a></code> / <code><a href="reference/mesh_summary.html">mesh_summary()</a></code>: per-triangle angles, aspect ratio, area, and their min/median/max.</li>
 <li>
-<code>fem_matrices(lumped = TRUE)</code> - Diagonal mass for SPDE Q-builder</li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>: mesh visualization, with <code>color = "quality"</code> to shade by minimum angle.</li>
 <li>
-<code>fem_matrices(parallel = TRUE)</code> - Multithreaded assembly via TBB</li>
+<code><a href="reference/subdivide_mesh.html">subdivide_mesh()</a></code>, <code><a href="reference/subset_mesh.html">subset_mesh()</a></code>, <code><a href="reference/mesh_components.html">mesh_components()</a></code>: 1-to-4 subdivision, submesh extraction, connected-component finding.</li>
 <li>
-<code>fem_matrices(barrier = ...)</code> - Barrier models (Bakka et al. 2019)</li>
+<code><a href="reference/refine_mesh.html">refine_mesh()</a></code>: adaptive refinement from per-triangle error indicators.</li>
 <li>
-<code><a href="reference/fem_matrices_p2.html">fem_matrices_p2()</a></code> - Quadratic (P2) elements for higher accuracy</li>
-<li>
-<code><a href="reference/fem_matrices_nonstationary.html">fem_matrices_nonstationary()</a></code> - Spatially varying range and variance</li>
+<code><a href="reference/barrier_triangles.html">barrier_triangles()</a></code>, <code><a href="reference/mesh_crs.html">mesh_crs()</a></code>, <code><a href="reference/mesh_crs.html">set_crs()</a></code>: barrier identification and CRS handling.</li>
 </ul>
-</div>
-<div class="section level3">
-<h3 id="quality--diagnostics">Quality &amp; Diagnostics<a class="anchor" aria-label="anchor" href="#quality--diagnostics"></a>
-</h3>
-<ul>
-<li>
-<code><a href="reference/mesh_quality.html">mesh_quality()</a></code> - Per-triangle angles, aspect ratio, area</li>
-<li>
-<code><a href="reference/mesh_summary.html">mesh_summary()</a></code> - Min/median/max quality statistics</li>
-<li>
-<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> - Mesh visualization with optional quality coloring</li>
-<li>Ruppert refinement via <code>min_angle</code> and <code>max_area</code> parameters</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="mesh-operations">Mesh Operations<a class="anchor" aria-label="anchor" href="#mesh-operations"></a>
-</h3>
-<ul>
-<li>
-<code><a href="reference/subdivide_mesh.html">subdivide_mesh()</a></code> - Uniform 1-to-4 triangle subdivision</li>
-<li>
-<code><a href="reference/subset_mesh.html">subset_mesh()</a></code> - Extract submesh from triangle indices</li>
-<li>
-<code><a href="reference/mesh_components.html">mesh_components()</a></code> - Find disconnected components</li>
-<li>
-<code><a href="reference/refine_mesh.html">refine_mesh()</a></code> - Adaptive refinement from error indicators</li>
-<li>
-<code><a href="reference/as_tulpa_mesh.html">as_tulpa_mesh()</a></code> - Convert fmesher/INLA meshes</li>
-<li>
-<code><a href="reference/barrier_triangles.html">barrier_triangles()</a></code> - Identify barrier regions from polygons</li>
-</ul>
-</div>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Install from CRAN:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"tulpaMesh"</span><span class="op">)</span></span></code></pre></div>
-<p>Development version:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu">pak</span><span class="op">(</span><span class="st">"gcol33/tulpaMesh"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="usage-examples">Usage Examples<a class="anchor" aria-label="anchor" href="#usage-examples"></a>
-</h2>
-<div class="section level3">
-<h3 id="mesh-with-ruppert-refinement">Mesh with Ruppert Refinement<a class="anchor" aria-label="anchor" href="#mesh-with-ruppert-refinement"></a>
-</h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/gcol33/tulpaMesh">tulpaMesh</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"tulpaMesh"</span><span class="op">)</span>            <span class="co"># CRAN</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tulpa_mesh.html">tulpa_mesh</a></span><span class="op">(</span><span class="va">coords</span>, min_angle <span class="op">=</span> <span class="fl">25</span>, max_edge <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/mesh_summary.html">mesh_summary</a></span><span class="op">(</span><span class="va">mesh</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mesh</span>, color <span class="op">=</span> <span class="st">"quality"</span>, vertex_col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="barrier-model-coastline">Barrier Model (Coastline)<a class="anchor" aria-label="anchor" href="#barrier-model-coastline"></a>
-</h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Barrier polygon (e.g., land mass that field can't cross)</span></span>
-<span><span class="va">barrier</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_polygon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>,<span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>,<span class="fl">7</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">7</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">bt</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/barrier_triangles.html">barrier_triangles</a></span><span class="op">(</span><span class="va">mesh</span>, <span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="va">barrier</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh</span>, barrier <span class="op">=</span> <span class="va">bt</span><span class="op">)</span></span>
-<span><span class="co"># fem$G has zero stiffness across barrier triangles</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="spherical-mesh-for-global-models">Spherical Mesh for Global Models<a class="anchor" aria-label="anchor" href="#spherical-mesh-for-global-models"></a>
-</h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">globe</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tulpa_mesh_sphere.html">tulpa_mesh_sphere</a></span><span class="op">(</span>subdivisions <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">globe</span></span>
-<span><span class="co">#&gt; tulpa_mesh (sphere, radius = 1):</span></span>
-<span><span class="co">#&gt;   Vertices:   2562</span></span>
-<span><span class="co">#&gt;   Triangles:  5120</span></span>
-<span><span class="co">#&gt;   Edges:      7680</span></span>
-<span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">globe</span>, lumped <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co"># Total surface area approximates 4*pi</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">fem</span><span class="op">$</span><span class="va">va</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="migrate-from-fmesher">Migrate from fmesher<a class="anchor" aria-label="anchor" href="#migrate-from-fmesher"></a>
-</h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://inlabru-org.github.io/fmesher/" class="external-link">fmesher</a></span><span class="op">)</span></span>
-<span><span class="va">fm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_mesh_2d.html" class="external-link">fm_mesh_2d</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="va">coords</span>, max.edge <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">tm</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/as_tulpa_mesh.html">as_tulpa_mesh</a></span><span class="op">(</span><span class="va">fm</span><span class="op">)</span>  <span class="co"># direct conversion</span></span>
-<span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">tm</span><span class="op">)</span>  <span class="co"># same C, G, A as fmesher</span></span></code></pre></div>
-</div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span>                  <span class="co"># development version</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"gcol33/tulpaMesh"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
 <ul>
 <li><a href="https://gillescolling.com/tulpaMesh/articles/quickstart.html" class="external-link">Quick Start</a></li>
-<li>
-<a href="https://gillescolling.com/tulpaMesh/articles/workflows.html" class="external-link">Spatial Workflows</a> — boundaries, barriers, sf integration</li>
-<li>
-<a href="https://gillescolling.com/tulpaMesh/articles/advanced.html" class="external-link">Spherical and Temporal Meshes</a> — globe, space-time, graphs, P2</li>
+<li><a href="https://gillescolling.com/tulpaMesh/articles/workflows.html" class="external-link">Spatial Workflows</a></li>
+<li><a href="https://gillescolling.com/tulpaMesh/articles/advanced.html" class="external-link">Spherical and Temporal Meshes</a></li>
 <li><a href="https://gillescolling.com/tulpaMesh/reference/" class="external-link">Full Reference</a></li>
 </ul>
 </div>
@@ -267,19 +203,19 @@
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co">@software{tulpaMesh,</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">  author = {Colling, Gilles},</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">  title = {tulpaMesh: Constrained Delaunay Triangulation Meshes for Spatial SPDE Models},</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">  year = {2026},</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">  url = {https://CRAN.R-project.org/package=tulpaMesh},</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">  doi = {10.32614/CRAN.package.tulpaMesh}</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">@software{tulpaMesh,</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">  author = {Colling, Gilles},</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">  title = {tulpaMesh: Constrained Delaunay Triangulation Meshes for Spatial SPDE Models},</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">  year = {2026},</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">  url = {https://CRAN.R-project.org/package=tulpaMesh},</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">  doi = {10.32614/CRAN.package.tulpaMesh}</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">}</span></span></code></pre></div>
 </div>
 </div>
-
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=tulpaMesh" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/gcol33/tulpaMesh/">Browse source code</a></li>
 <li><a href="https://github.com/gcol33/tulpaMesh/issues">Report a bug</a></li>
 </ul>
@@ -313,6 +249,7 @@
 <ul class="list-unstyled">
 <li>
 <a href="https://github.com/gcol33" class="external-link">Gilles Colling</a> <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0003-3070-6066" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
