@@ -1,5 +1,10 @@
-# tulpaMesh 0.1.2
+# tulpaMesh 0.1.3
 
+* Parallel FEM assembly (`fem_matrices(parallel = TRUE)`) no longer references
+  Intel TBB symbols directly. Each worker now accumulates triplets into a
+  chunk-local buffer that is merged under a mutex, so the package builds on
+  platforms where `RcppParallel` falls back to its TinyThread backend (for
+  example Alpine Linux with musl).
 * Fixed `tulpa_mesh(max_edge = ...)` collapsing to zero triangles for some
   `(max_edge, cutoff)` settings and point counts. Vertex deduplication could
   merge extended-hull boundary vertices that fell within `max_edge * 0.3` of

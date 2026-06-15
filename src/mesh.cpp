@@ -17,6 +17,7 @@
 #include <cmath>
 #include <algorithm>
 #include <unordered_map>
+#include <mutex>
 
 using namespace Rcpp;
 
@@ -650,26 +651,18 @@ struct FemWorker : public RcppParallel::Worker {
     const RcppParallel::RMatrix<double> vertices;
     const RcppParallel::RMatrix<int> triangles;
 
-    // Thread-local storage: one vector per thread
-    // We use a vector of vectors indexed by thread
-    std::vector<std::vector<int>>    tl_C_i, tl_C_j, tl_G_i, tl_G_j;
-    std::vector<std::vector<double>> tl_C_x, tl_G_x;
-    int n_threads;
+    // Shared output triplets, appended once per chunk under a lock.
+    std::vector<int>    out_C_i, out_C_j, out_G_i, out_G_j;
+    std::vector<double> out_C_x, out_G_x;
+    std::mutex          merge_mutex;
 
     FemWorker(NumericMatrix verts, IntegerMatrix tris)
-        : vertices(verts), triangles(tris)
-    {
-        n_threads = std::max(1, (int)tbb::this_task_arena::max_concurrency());
-        tl_C_i.resize(n_threads); tl_C_j.resize(n_threads); tl_C_x.resize(n_threads);
-        tl_G_i.resize(n_threads); tl_G_j.resize(n_threads); tl_G_x.resize(n_threads);
-    }
+        : vertices(verts), triangles(tris) {}
 
     void operator()(std::size_t begin, std::size_t end) {
-        int tid = tbb::this_task_arena::current_thread_index();
-        if (tid < 0 || tid >= n_threads) tid = 0;
-
-        auto& C_i = tl_C_i[tid]; auto& C_j = tl_C_j[tid]; auto& C_x = tl_C_x[tid];
-        auto& G_i = tl_G_i[tid]; auto& G_j = tl_G_j[tid]; auto& G_x = tl_G_x[tid];
+        // Chunk-local buffers: the hot loop touches no shared state.
+        std::vector<int>    C_i, C_j, G_i, G_j;
+        std::vector<double> C_x, G_x;
 
         for (std::size_t t = begin; t < end; t++) {
             int v0 = triangles(t, 0) - 1;
@@ -710,6 +703,15 @@ struct FemWorker : public RcppParallel::Worker {
                 }
             }
         }
+
+        // Append this chunk's triplets to the shared output.
+        std::lock_guard<std::mutex> lock(merge_mutex);
+        out_C_i.insert(out_C_i.end(), C_i.begin(), C_i.end());
+        out_C_j.insert(out_C_j.end(), C_j.begin(), C_j.end());
+        out_C_x.insert(out_C_x.end(), C_x.begin(), C_x.end());
+        out_G_i.insert(out_G_i.end(), G_i.begin(), G_i.end());
+        out_G_j.insert(out_G_j.end(), G_j.begin(), G_j.end());
+        out_G_x.insert(out_G_x.end(), G_x.begin(), G_x.end());
     }
 };
 
@@ -721,34 +723,13 @@ List cpp_fem_matrices_parallel(NumericMatrix vertices, IntegerMatrix triangles) 
     FemWorker worker(vertices, triangles);
     RcppParallel::parallelFor(0, n_tri, worker);
 
-    // Merge thread-local results
-    std::size_t total_C = 0, total_G = 0;
-    for (int t = 0; t < worker.n_threads; t++) {
-        total_C += worker.tl_C_i[t].size();
-        total_G += worker.tl_G_i[t].size();
-    }
-
-    std::vector<int> C_i, C_j, G_i, G_j;
-    std::vector<double> C_x, G_x;
-    C_i.reserve(total_C); C_j.reserve(total_C); C_x.reserve(total_C);
-    G_i.reserve(total_G); G_j.reserve(total_G); G_x.reserve(total_G);
-
-    for (int t = 0; t < worker.n_threads; t++) {
-        C_i.insert(C_i.end(), worker.tl_C_i[t].begin(), worker.tl_C_i[t].end());
-        C_j.insert(C_j.end(), worker.tl_C_j[t].begin(), worker.tl_C_j[t].end());
-        C_x.insert(C_x.end(), worker.tl_C_x[t].begin(), worker.tl_C_x[t].end());
-        G_i.insert(G_i.end(), worker.tl_G_i[t].begin(), worker.tl_G_i[t].end());
-        G_j.insert(G_j.end(), worker.tl_G_j[t].begin(), worker.tl_G_j[t].end());
-        G_x.insert(G_x.end(), worker.tl_G_x[t].begin(), worker.tl_G_x[t].end());
-    }
-
     return List::create(
-        Named("C_i") = wrap(C_i),
-        Named("C_j") = wrap(C_j),
-        Named("C_x") = wrap(C_x),
-        Named("G_i") = wrap(G_i),
-        Named("G_j") = wrap(G_j),
-        Named("G_x") = wrap(G_x),
+        Named("C_i") = wrap(worker.out_C_i),
+        Named("C_j") = wrap(worker.out_C_j),
+        Named("C_x") = wrap(worker.out_C_x),
+        Named("G_i") = wrap(worker.out_G_i),
+        Named("G_j") = wrap(worker.out_G_j),
+        Named("G_x") = wrap(worker.out_G_x),
         Named("n") = n_verts
     );
 }

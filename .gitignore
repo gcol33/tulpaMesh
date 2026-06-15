@@ -1,6 +1,8 @@
 src/*.o
 src/*.so
 src/*.dll
+src/Makevars
+src/Makevars.win
 *.tar.gz
 *.Rcheck/
 .Rproj.user

@@ -24,8 +24,8 @@ their stiffness contributions are zeroed so the spatial field cannot
 smooth across them. Based on Bakka et al. (2019).}
 
 \item{parallel}{Logical. If \code{TRUE}, uses parallel FEM assembly via
-RcppParallel (thread-local triplet accumulation). Beneficial for
-meshes with >50K triangles. Default \code{FALSE}.}
+RcppParallel (chunk-local triplet accumulation merged under a mutex).
+Beneficial for meshes with >50K triangles. Default \code{FALSE}.}
 
 \item{lumped}{Logical. If \code{TRUE}, returns a diagonal lumped mass matrix
 C0 (vertex areas) in addition to the consistent mass matrix C. The

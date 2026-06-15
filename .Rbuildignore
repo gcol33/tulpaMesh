@@ -3,7 +3,7 @@
 ^\.github$
 ^docs$
 ^pkgdown$
-^_pkgdown\.yml$
+^_
 ^CLAUDE\.md$
 ^\.claude$
 ^cran-comments\.md$
@@ -27,9 +27,5 @@
 ^build_site\.R$
 ^dev_notes$
 ^fix-mesh-zero-triangles\.md$
-^_preflight\.R$
-^_doi_check\.R$
-^_rcheck\.R$
-^_winbuilder\.R$
-^_rcheck\.log$
-^_winbuilder\.log$
+^src/Makevars$
+^src/Makevars\.win$
