@@ -1,0 +1,10 @@
+* text=auto eol=lf
+
+# Build scripts are run by sh/make on Unix, which fails on CRLF.
+configure       text eol=lf
+configure.win   text eol=lf
+cleanup         text eol=lf
+src/Makevars.in text eol=lf
+
+*.woff2 binary
+*.ttf   binary
