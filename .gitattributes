@@ -6,5 +6,21 @@ configure.win   text eol=lf
 cleanup         text eol=lf
 src/Makevars.in text eol=lf
 
+# cmd.exe reads batch files as CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary, never line-ending converted and never diffed as text.
 *.woff2 binary
+*.woff  binary
 *.ttf   binary
+*.rds   binary
+*.rda   binary
+*.RData binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
