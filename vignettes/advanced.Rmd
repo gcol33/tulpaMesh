@@ -21,6 +21,15 @@ knitr::opts_chunk$set(
 library(tulpaMesh)
 ```
 
+## Installation
+
+```{r, eval = FALSE}
+install.packages("tulpaMesh")            # CRAN
+
+install.packages("pak")                  # development version
+pak::pak("gcol33/tulpaMesh")
+```
+
 ## Spherical meshes
 
 For global-scale species distribution models or climate fields, you need a mesh on the sphere. `tulpa_mesh_sphere()` generates one by recursive subdivision of an icosahedron.

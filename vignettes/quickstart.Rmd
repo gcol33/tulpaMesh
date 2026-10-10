@@ -21,6 +21,15 @@ knitr::opts_chunk$set(
 library(tulpaMesh)
 ```
 
+## Installation
+
+```{r, eval = FALSE}
+install.packages("tulpaMesh")            # CRAN
+
+install.packages("pak")                  # development version
+pak::pak("gcol33/tulpaMesh")
+```
+
 ## Your first mesh
 
 tulpaMesh takes point coordinates and returns a triangulated mesh with FEM matrices ready for SPDE models.

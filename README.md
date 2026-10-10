@@ -18,6 +18,17 @@ header-only library with exact geometric predicates; the FEM assembly has no
 dependency beyond Rcpp and Matrix. It is the mesh backend for the `tulpa`
 Bayesian engine and runs standalone for any spatial triangulation task.
 
+## Installation
+
+```r
+install.packages("tulpaMesh")            # CRAN
+
+install.packages("pak")                  # development version
+pak::pak("gcol33/tulpaMesh")
+```
+
+## Quick start
+
 ```r
 library(tulpaMesh)
 
@@ -84,15 +95,6 @@ fem     <- fem_matrices(mesh, barrier = bt)
 - `refine_mesh()`: adaptive refinement from per-triangle error indicators.
 - `barrier_triangles()`, `mesh_crs()`, `set_crs()`: barrier identification and
   CRS handling.
-
-## Installation
-
-```r
-install.packages("tulpaMesh")            # CRAN
-
-install.packages("pak")                  # development version
-pak::pak("gcol33/tulpaMesh")
-```
 
 ## Documentation
 

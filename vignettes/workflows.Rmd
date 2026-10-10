@@ -21,6 +21,15 @@ knitr::opts_chunk$set(
 library(tulpaMesh)
 ```
 
+## Installation
+
+```{r, eval = FALSE}
+install.packages("tulpaMesh")            # CRAN
+
+install.packages("pak")                  # development version
+pak::pak("gcol33/tulpaMesh")
+```
+
 ## Custom boundaries
 
 By default, `tulpa_mesh()` uses the convex hull extended by 10%. You can provide an explicit boundary as a coordinate matrix:
