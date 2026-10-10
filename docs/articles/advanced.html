@@ -7,14 +7,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Spherical and Temporal Meshes • tulpaMesh</title>
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Spherical and Temporal Meshes">
+<script>
+(function () {
+  var D = String.fromCharCode(36);
+  window.MathJax = {
+    tex: {
+      inlineMath: [[D, D], ["\\(", "\\)"]],
+      displayMath: [[D + D, D + D], ["\\[", "\\]"]]
+    },
+    chtml: { linebreaks: { automatic: true, width: "90% container" } },
+    svg: { linebreaks: { automatic: true, width: "90% container" } },
+    options: { renderActions: { addMenu: [] } }
+  };
+})();
+</script>
 </head>
 <body>
-
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -22,7 +35,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tulpaMesh</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,7 +86,7 @@
                         <h4 data-toc-skip class="author">Gilles
 Colling</h4>
             
-            <h4 data-toc-skip class="date">2026-03-26</h4>
+            <h4 data-toc-skip class="date">2026-10-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gcol33/tulpaMesh/blob/HEAD/vignettes/advanced.Rmd"><code>vignettes/advanced.Rmd</code></a></small>
       <div class="d-none name"><code>advanced.Rmd</code></div>
@@ -82,12 +95,21 @@ Colling</h4>
     
     
 <div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"tulpaMesh"</span><span class="op">)</span>            <span class="co"># CRAN</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span>                  <span class="co"># development version</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"gcol33/tulpaMesh"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="spherical-meshes">Spherical meshes<a class="anchor" aria-label="anchor" href="#spherical-meshes"></a>
 </h2>
 <p>For global-scale species distribution models or climate fields, you
 need a mesh on the sphere. <code><a href="../reference/tulpa_mesh_sphere.html">tulpa_mesh_sphere()</a></code> generates
 one by recursive subdivision of an icosahedron.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">globe</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh_sphere.html">tulpa_mesh_sphere</a></span><span class="op">(</span>subdivisions <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">globe</span></span>
 <span><span class="co">#&gt; tulpa_mesh (sphere, radius = 1 ):</span></span>
@@ -130,7 +152,7 @@ one by recursive subdivision of an icosahedron.</p>
 </tbody>
 </table>
 <p>All vertices lie exactly on the sphere surface:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">radii</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">globe</span><span class="op">$</span><span class="va">vertices</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">radii</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1 1</span></span></code></pre></div>
@@ -139,7 +161,7 @@ one by recursive subdivision of an icosahedron.</p>
 </h3>
 <p>The 3D FEM assembly uses the metric tensor on each triangle’s tangent
 plane:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">globe</span>, lumped <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Total surface area should approximate 4*pi for unit sphere</span></span>
@@ -154,7 +176,7 @@ plane:</p>
 <h3 id="projection-with-lonlat-coordinates">Projection with lon/lat coordinates<a class="anchor" aria-label="anchor" href="#projection-with-lonlat-coordinates"></a>
 </h3>
 <p>Pass observation coordinates as (longitude, latitude) in degrees:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>lon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="op">-</span><span class="fl">45</span>, <span class="fl">170</span><span class="op">)</span>, lat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">45</span>, <span class="op">-</span><span class="fl">30</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">globe</span>, obs_coords <span class="op">=</span> <span class="va">obs</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fem</span><span class="op">$</span><span class="va">A</span><span class="op">)</span></span>
@@ -165,7 +187,7 @@ plane:</p>
 <div class="section level3">
 <h3 id="earth-radius-meshes">Earth-radius meshes<a class="anchor" aria-label="anchor" href="#earth-radius-meshes"></a>
 </h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">earth</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh_sphere.html">tulpa_mesh_sphere</a></span><span class="op">(</span>subdivisions <span class="op">=</span> <span class="fl">3</span>, radius <span class="op">=</span> <span class="fl">6371</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">earth</span><span class="op">$</span><span class="va">vertices</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>  <span class="co"># 6371 km</span></span>
 <span><span class="co">#&gt; [1] 6371</span></span></code></pre></div>
@@ -174,7 +196,7 @@ plane:</p>
 <h3 id="euler-characteristic">Euler characteristic<a class="anchor" aria-label="anchor" href="#euler-characteristic"></a>
 </h3>
 <p>A closed sphere satisfies V - E + T = 2:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">globe</span><span class="op">$</span><span class="va">n_vertices</span> <span class="op">-</span> <span class="va">globe</span><span class="op">$</span><span class="va">n_edges</span> <span class="op">+</span> <span class="va">globe</span><span class="op">$</span><span class="va">n_triangles</span></span>
 <span><span class="co">#&gt; [1] 2</span></span></code></pre></div>
 </div>
@@ -185,7 +207,7 @@ plane:</p>
 <p>For spatio-temporal SPDE models, the temporal dimension needs its own
 mesh. <code><a href="../reference/tulpa_mesh_1d.html">tulpa_mesh_1d()</a></code> produces knots with tridiagonal FEM
 matrices that combine with the spatial mesh via Kronecker products.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Monthly observations over 5 years</span></span>
 <span><span class="va">times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2020</span>, <span class="fl">2025</span>, by <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">m1d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh_1d.html">tulpa_mesh_1d</a></span><span class="op">(</span><span class="va">times</span><span class="op">)</span></span>
@@ -196,7 +218,7 @@ matrices that combine with the spatial mesh via Kronecker products.</p>
 <span><span class="co">#&gt;   Intervals: 66</span></span></code></pre></div>
 <p>The extension knots (controlled by <code>n_extend</code>) prevent
 boundary effects:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">times</span><span class="op">)</span>       <span class="co"># data range</span></span>
 <span><span class="co">#&gt; [1] 2020 2025</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">m1d</span><span class="op">$</span><span class="va">knots</span><span class="op">)</span>   <span class="co"># mesh range (extended)</span></span>
@@ -205,7 +227,7 @@ boundary effects:</p>
 <h3 id="d-fem-properties">1D FEM properties<a class="anchor" aria-label="anchor" href="#d-fem-properties"></a>
 </h3>
 <p>Mass and stiffness matrices are tridiagonal and sparse:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># No extension for cleaner demonstration</span></span>
 <span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh_1d.html">tulpa_mesh_1d</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, n_extend <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
@@ -227,7 +249,7 @@ boundary effects:</p>
 <h3 id="irregular-time-spacing">Irregular time spacing<a class="anchor" aria-label="anchor" href="#irregular-time-spacing"></a>
 </h3>
 <p>The 1D mesh handles irregular intervals naturally:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Denser sampling in summer, sparser in winter</span></span>
 <span><span class="va">times_irr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2020</span>, <span class="fl">2020.25</span>, by <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">52</span><span class="op">)</span>,      <span class="co"># weekly Jan-Mar</span></span>
@@ -245,7 +267,7 @@ boundary effects:</p>
 <p>For SPDE models along roads, rivers, or coastlines,
 <code><a href="../reference/tulpa_mesh_graph.html">tulpa_mesh_graph()</a></code> builds a 1D FEM mesh along network
 edges.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Simple river network: main channel + tributary</span></span>
 <span><span class="va">edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">21</span><span class="op">)</span><span class="op">)</span>,     <span class="co"># main channel</span></span>
@@ -262,7 +284,7 @@ edges.</p>
 <h3 id="junction-detection">Junction detection<a class="anchor" aria-label="anchor" href="#junction-detection"></a>
 </h3>
 <p>Nodes where edges meet are automatically detected:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Junctions (degree &gt; 2):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">degree</span> <span class="op">&gt;</span> <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Junctions (degree &gt; 2): 1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Endpoints (degree = 1):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">degree</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
@@ -273,7 +295,7 @@ edges.</p>
 </h3>
 <p>The graph FEM matrices are structurally identical to the 1D case but
 assembled across the full network:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/isSymmetric-methods.html" class="external-link">isSymmetric</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">C</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">G</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>  <span class="co"># row sums ~ 0</span></span>
@@ -282,7 +304,7 @@ assembled across the full network:</p>
 <div class="section level3">
 <h3 id="subdividing-long-edges">Subdividing long edges<a class="anchor" aria-label="anchor" href="#subdividing-long-edges"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g_fine</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh_graph.html">tulpa_mesh_graph</a></span><span class="op">(</span><span class="va">edges</span>, max_edge <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Coarse:"</span>, <span class="va">g</span><span class="op">$</span><span class="va">n_vertices</span>, <span class="st">"vertices\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Coarse: 24 vertices</span></span>
@@ -292,9 +314,9 @@ assembled across the full network:</p>
 <div class="section level3">
 <h3 id="sf-linestring-input">sf LINESTRING input<a class="anchor" aria-label="anchor" href="#sf-linestring-input"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE</span></span>
+<span><span class="co">#&gt; Linking to GEOS 3.14.1, GDAL 3.12.1, PROJ 9.7.1; sf_use_s2() is TRUE</span></span>
 <span><span class="va">line1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_linestring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">line2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st.html" class="external-link">st_linestring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh_graph.html">tulpa_mesh_graph</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/sfc.html" class="external-link">st_sfc</a></span><span class="op">(</span><span class="va">line1</span>, <span class="va">line2</span><span class="op">)</span>, max_edge <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
@@ -311,7 +333,7 @@ assembled across the full network:</p>
 <p>For fields where the range or variance changes across space,
 <code><a href="../reference/fem_matrices_nonstationary.html">fem_matrices_nonstationary()</a></code> computes weighted FEM matrices
 in C++:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh.html">tulpa_mesh</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span><span class="op">)</span>, max_edge <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="va">mesh</span><span class="op">$</span><span class="va">n_vertices</span></span>
@@ -325,21 +347,21 @@ in C++:</p>
 <span><span class="co">#&gt; [1] "Ck"     "Gk"     "Ct"     "C"      "G"      "C0"     "n_mesh"</span></span></code></pre></div>
 <p>With constant kappa/tau, the weighted matrices are simply scaled
 versions of the standard ones:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ns_const</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices_nonstationary.html">fem_matrices_nonstationary</a></span><span class="op">(</span><span class="va">mesh</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">n</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fem</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ns_const</span><span class="op">$</span><span class="va">Ck</span> <span class="op">-</span> <span class="fl">4</span> <span class="op">*</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span><span class="op">)</span><span class="op">)</span>  <span class="co"># kappa^2 = 4</span></span>
 <span><span class="co">#&gt; [1] 0</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ns_const</span><span class="op">$</span><span class="va">Ct</span> <span class="op">-</span> <span class="fl">9</span> <span class="op">*</span> <span class="va">fem</span><span class="op">$</span><span class="va">C</span><span class="op">)</span><span class="op">)</span>  <span class="co"># tau^2 = 9</span></span>
-<span><span class="co">#&gt; [1] 2.775558e-17</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 1.387779e-17</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="p2-quadratic-elements">P2 quadratic elements<a class="anchor" aria-label="anchor" href="#p2-quadratic-elements"></a>
 </h2>
 <p>For higher accuracy with fewer mesh nodes, use 6-node quadratic
 elements:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">mesh</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh.html">tulpa_mesh</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices_p2.html">fem_matrices_p2</a></span><span class="op">(</span><span class="va">mesh</span><span class="op">)</span></span>
@@ -350,7 +372,7 @@ elements:</p>
 <span>    <span class="va">p2</span><span class="op">$</span><span class="va">n_midpoints</span>, <span class="st">"midpoints)\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; P2 nodes: 147 ( 40 vertices + 107 midpoints)</span></span></code></pre></div>
 <p>The total area is preserved:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fem_p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"P1 total area:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">fem_p1</span><span class="op">$</span><span class="va">C</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; P1 total area: 0.9660631</span></span>
@@ -361,11 +383,11 @@ elements:</p>
 <h2 id="parallel-fem-assembly">Parallel FEM assembly<a class="anchor" aria-label="anchor" href="#parallel-fem-assembly"></a>
 </h2>
 <p>For large meshes (&gt;50K triangles), enable parallel assembly:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">mesh_large</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tulpa_mesh.html">tulpa_mesh</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">500</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>, max_edge <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="va">mesh_large</span><span class="op">$</span><span class="va">n_triangles</span>, <span class="st">"triangles\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 4014 triangles</span></span>
+<span><span class="co">#&gt; 3726 triangles</span></span>
 <span></span>
 <span><span class="va">fem_seq</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh_large</span>, parallel <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">fem_par</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fem_matrices.html">fem_matrices</a></span><span class="op">(</span><span class="va">mesh_large</span>, parallel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -385,7 +407,7 @@ elements:</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
@@ -395,6 +417,5 @@ elements:</p>
 
 
 
-  
-</body>
+  </body>
 </html>
