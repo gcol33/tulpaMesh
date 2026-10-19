@@ -37,8 +37,8 @@ fem_matrices(
 - parallel:
 
   Logical. If `TRUE`, uses parallel FEM assembly via RcppParallel
-  (thread-local triplet accumulation). Beneficial for meshes with \>50K
-  triangles. Default `FALSE`.
+  (chunk-local triplet accumulation merged under a mutex). Beneficial
+  for meshes with \>50K triangles. Default `FALSE`.
 
 - lumped:
 

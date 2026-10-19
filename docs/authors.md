@@ -5,6 +5,12 @@
 - **[Gilles Colling](https://github.com/gcol33)**. Author, maintainer,
   copyright holder. [](https://orcid.org/0000-0003-3070-6066)
 
+- **Artem Amirkhanov**. Contributor, copyright holder.\
+  CDT library (src/cdt/, MPL-2.0)
+
+- **William C. Lenthe**. Contributor, copyright holder.\
+  Geometric predicates (src/cdt/predicates.h, BSD-3-Clause)
+
 ## Citation
 
 Source:
@@ -12,7 +18,7 @@ Source:
 
 Colling G (2026). *tulpaMesh: Constrained Delaunay Triangulation Meshes
 for Spatial SPDE Models*.
-[doi:10.32614/CRAN.package.tulpaMesh](https://doi.org/10.32614/CRAN.package.tulpaMesh),
+[doi:10.32614/CRAN.package.tulpaMesh](https://doi.org/10.32614/CRAN.package.tulpaMesh).
 <https://CRAN.R-project.org/package=tulpaMesh>.
 
     @Manual{,

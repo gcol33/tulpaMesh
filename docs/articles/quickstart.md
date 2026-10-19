@@ -1,5 +1,15 @@
 # Quick Start
 
+## Installation
+
+``` r
+
+install.packages("tulpaMesh")            # CRAN
+
+install.packages("pak")                  # development version
+pak::pak("gcol33/tulpaMesh")
+```
+
 ## Your first mesh
 
 tulpaMesh takes point coordinates and returns a triangulated mesh with
@@ -38,9 +48,9 @@ triangles.
 mesh_fine <- tulpa_mesh(coords, max_edge = 0.08)
 mesh_fine
 #> tulpa_mesh:
-#>   Vertices:   337 
-#>   Triangles:  579 
-#>   Edges:      875
+#>   Vertices:   301 
+#>   Triangles:  511 
+#>   Edges:      773
 plot(mesh_fine, main = "Refined mesh (max_edge = 0.08)")
 ```
 
@@ -62,9 +72,9 @@ returns the three sparse matrices needed for SPDE models:
 
 fem <- fem_matrices(mesh_fine, obs_coords = coords)
 dim(fem$C)
-#> [1] 337 337
+#> [1] 301 301
 dim(fem$A)
-#> [1] 100 337
+#> [1] 100 301
 
 # Verify key properties
 all(Matrix::diag(fem$C) > 0)        # positive diagonal
@@ -110,12 +120,14 @@ and
 ``` r
 
 mesh_summary(mesh_fine)
-#> Mesh quality summary (579 triangles):
-#>   Min angle:     min=0.4  median=36.9  max=60.0 deg 
-#>   Max angle:     min=60.0  median=81.7  max=179.2 deg 
-#>   Aspect ratio:  min=1.00  median=1.22  max=9736.11   (1 = equilateral)
-#>   Area:          min=2.36e-05  median=1.69e-03  max=1.51e-02 
-#>   Warning: 118 triangles with min angle < 20 deg (20.4%)
+#> Mesh quality summary:
+#>   Triangles:      511
+#>   Min angle:      0.4 / 40.9 / 60.0 (min / median / max)
+#>   Max angle:      60.0 / 78.6 / 179.2
+#>   Aspect ratio:   1.00 / 1.48 / 35.34
+#>   Area:           0.0000 / 0.0020 / 0.0151
+#>   WARNING: 29 triangles with min angle < 10 degrees
+#>   WARNING: 17 triangles with min angle < 5 degrees (slivers)
 ```
 
 Color triangles by minimum angle:
@@ -135,12 +147,12 @@ For guaranteed minimum angles, use `min_angle`:
 
 mesh_r <- tulpa_mesh(coords, min_angle = 25, max_edge = 0.15)
 mesh_summary(mesh_r)
-#> Mesh quality summary (331 triangles):
-#>   Min angle:     min=3.2  median=28.4  max=60.0 deg 
-#>   Max angle:     min=60.0  median=90.8  max=168.5 deg 
-#>   Aspect ratio:  min=1.00  median=1.48  max=51.82   (1 = equilateral)
-#>   Area:          min=2.35e-05  median=2.60e-03  max=3.42e-02 
-#>   Warning: 93 triangles with min angle < 20 deg (28.1%)
+#> Mesh quality summary:
+#>   Triangles:      759
+#>   Min angle:      25.0 / 39.9 / 60.0 (min / median / max)
+#>   Max angle:      60.0 / 76.9 / 128.9
+#>   Aspect ratio:   1.00 / 1.52 / 2.31
+#>   Area:           0.0000 / 0.0009 / 0.0116
 ```
 
 ## Next steps

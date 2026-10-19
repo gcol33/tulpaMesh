@@ -31,3 +31,4 @@
 ^fix-mesh-zero-triangles\.md$
 ^src/Makevars$
 ^src/Makevars\.win$
+^CITATION\.cff$

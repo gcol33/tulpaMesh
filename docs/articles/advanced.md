@@ -1,5 +1,15 @@
 # Spherical and Temporal Meshes
 
+## Installation
+
+``` r
+
+install.packages("tulpaMesh")            # CRAN
+
+install.packages("pak")                  # development version
+pak::pak("gcol33/tulpaMesh")
+```
+
 ## Spherical meshes
 
 For global-scale species distribution models or climate fields, you need
@@ -221,6 +231,7 @@ cat("Fine:  ", g_fine$n_vertices, "vertices\n")
 ``` r
 
 library(sf)
+#> Warning: package 'sf' was built under R version 4.6.1
 #> Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE
 line1 <- st_linestring(cbind(c(0, 5, 10), c(0, 3, 0)))
 line2 <- st_linestring(cbind(c(5, 5), c(3, 8)))
@@ -264,7 +275,7 @@ fem <- fem_matrices(mesh)
 max(abs(ns_const$Ck - 4 * fem$C))  # kappa^2 = 4
 #> [1] 0
 max(abs(ns_const$Ct - 9 * fem$C))  # tau^2 = 9
-#> [1] 2.775558e-17
+#> [1] 1.387779e-17
 ```
 
 ## P2 quadratic elements
@@ -305,12 +316,12 @@ For large meshes (\>50K triangles), enable parallel assembly:
 set.seed(42)
 mesh_large <- tulpa_mesh(cbind(runif(500), runif(500)), max_edge = 0.03)
 cat(mesh_large$n_triangles, "triangles\n")
-#> 4014 triangles
+#> 3726 triangles
 
 fem_seq <- fem_matrices(mesh_large, parallel = FALSE)
 fem_par <- fem_matrices(mesh_large, parallel = TRUE)
 
 # Results are identical
 max(abs(fem_seq$C - fem_par$C))
-#> [1] 2.168404e-19
+#> [1] 4.336809e-19
 ```

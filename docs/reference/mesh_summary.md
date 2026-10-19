@@ -2,9 +2,13 @@
 
 Prints min/median/max of mesh quality metrics.
 
+Prints a summary of mesh quality metrics.
+
 ## Usage
 
 ``` r
+mesh_summary(mesh)
+
 mesh_summary(mesh)
 ```
 
@@ -17,3 +21,5 @@ mesh_summary(mesh)
 ## Value
 
 Invisible data.frame of per-triangle quality metrics.
+
+Invisibly returns the quality data.frame.

@@ -3,9 +3,15 @@
 Computes quality metrics for each triangle in a mesh: minimum angle,
 maximum angle, aspect ratio, and area.
 
+Computes per-triangle quality metrics: minimum angle, maximum angle,
+aspect ratio, and area. Useful for identifying degenerate triangles that
+may cause numerical issues in SPDE models.
+
 ## Usage
 
 ``` r
+mesh_quality(mesh)
+
 mesh_quality(mesh)
 ```
 
@@ -27,3 +33,22 @@ A data.frame with one row per triangle and columns:
   equilateral, larger for worse quality)
 
 - `area`: triangle area
+
+A data.frame with one row per triangle and columns:
+
+- `min_angle`: minimum interior angle (degrees)
+
+- `max_angle`: maximum interior angle (degrees)
+
+- `aspect_ratio`: longest edge / shortest edge (1 = equilateral)
+
+- `area`: triangle area
+
+## Examples
+
+``` r
+set.seed(42)
+mesh <- tulpa_mesh(cbind(runif(50), runif(50)))
+q <- mesh_quality(mesh)
+summary(q)
+```

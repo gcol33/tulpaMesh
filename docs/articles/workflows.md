@@ -1,5 +1,15 @@
 # Spatial Workflows
 
+## Installation
+
+``` r
+
+install.packages("tulpaMesh")            # CRAN
+
+install.packages("pak")                  # development version
+pak::pak("gcol33/tulpaMesh")
+```
+
 ## Custom boundaries
 
 By default,
@@ -31,6 +41,7 @@ Pass an sf polygon directly. CRS is preserved automatically.
 ``` r
 
 library(sf)
+#> Warning: package 'sf' was built under R version 4.6.1
 #> Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE
 
 poly <- st_polygon(list(rbind(
@@ -129,7 +140,7 @@ river <- rbind(c(4, 0), c(6, 5), c(4, 10))
 bt <- barrier_triangles(mesh, river)
 
 cat(sum(bt), "barrier triangles out of", mesh$n_triangles, "\n")
-#> 56 barrier triangles out of 579
+#> 53 barrier triangles out of 511
 
 # FEM with barrier: stiffness is zeroed for barrier triangles
 fem_b <- fem_matrices(mesh, barrier = bt)
@@ -137,9 +148,9 @@ fem_b <- fem_matrices(mesh, barrier = bt)
 # Compare: barrier mesh has fewer stiffness nonzeros
 fem_n <- fem_matrices(mesh)
 cat("Nonzeros without barrier:", length(fem_n$G@x), "\n")
-#> Nonzeros without barrier: 2047
+#> Nonzeros without barrier: 1809
 cat("Nonzeros with barrier:   ", length(fem_b$G@x), "\n")
-#> Nonzeros with barrier:    1905
+#> Nonzeros with barrier:    1671
 ```
 
 ## Mesh subdivision
@@ -180,9 +191,9 @@ error <- exp(-3 * centroids[, 1])  # high error near x = 0
 
 refined <- refine_mesh(mesh, error, fraction = 0.3)
 cat("Before:", mesh$n_triangles, "triangles\n")
-#> Before: 211 triangles
+#> Before: 187 triangles
 cat("After: ", refined$n_triangles, "triangles\n")
-#> After:  370 triangles
+#> After:  326 triangles
 ```
 
 ## Mesh operations
@@ -202,9 +213,9 @@ centroids_x <- (mesh$vertices[mesh$triangles[,1], 1] +
 left <- subset_mesh(mesh, centroids_x < 5)
 left
 #> tulpa_mesh:
-#>   Vertices:   86 
-#>   Triangles:  144 
-#>   Edges:      229
+#>   Vertices:   76 
+#>   Triangles:  128 
+#>   Edges:      203
 ```
 
 ### Find disconnected components
@@ -223,7 +234,7 @@ If you have an existing fmesher mesh, convert it directly:
 ``` r
 
 library(fmesher)
-#> Warning: package 'fmesher' was built under R version 4.5.3
+#> Warning: package 'fmesher' was built under R version 4.6.1
 fm <- fm_mesh_2d(loc = coords, max.edge = c(1, 3))
 tm <- as_tulpa_mesh(fm)
 tm
