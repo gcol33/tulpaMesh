@@ -1,8 +1,10 @@
-# tulpaMesh
+# tulpaMesh <img src="man/figures/logo.svg" align="right" height="139" alt="tulpaMesh logo" />
 
 *a mesh from scattered points*
 
 <!-- badges: start -->
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/tulpaMesh)](https://cran.r-project.org/package=tulpaMesh)
+[![Monthly downloads](https://cranlogs.r-pkg.org/badges/tulpaMesh)](https://cran.r-project.org/package=tulpaMesh)
 [![R-CMD-check](https://github.com/gcol33/tulpaMesh/actions/workflows/R-CMD-check.yml/badge.svg)](https://github.com/gcol33/tulpaMesh/actions/workflows/R-CMD-check.yml)
 [![Codecov test coverage](https://codecov.io/gh/gcol33/tulpaMesh/graph/badge.svg)](https://app.codecov.io/gh/gcol33/tulpaMesh)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
