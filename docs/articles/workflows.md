@@ -41,7 +41,6 @@ Pass an sf polygon directly. CRS is preserved automatically.
 ``` r
 
 library(sf)
-#> Warning: package 'sf' was built under R version 4.6.1
 #> Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE
 
 poly <- st_polygon(list(rbind(
@@ -234,7 +233,6 @@ If you have an existing fmesher mesh, convert it directly:
 ``` r
 
 library(fmesher)
-#> Warning: package 'fmesher' was built under R version 4.6.1
 fm <- fm_mesh_2d(loc = coords, max.edge = c(1, 3))
 tm <- as_tulpa_mesh(fm)
 tm

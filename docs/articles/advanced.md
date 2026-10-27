@@ -231,7 +231,6 @@ cat("Fine:  ", g_fine$n_vertices, "vertices\n")
 ``` r
 
 library(sf)
-#> Warning: package 'sf' was built under R version 4.6.1
 #> Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE
 line1 <- st_linestring(cbind(c(0, 5, 10), c(0, 3, 0)))
 line2 <- st_linestring(cbind(c(5, 5), c(3, 8)))
@@ -323,5 +322,5 @@ fem_par <- fem_matrices(mesh_large, parallel = TRUE)
 
 # Results are identical
 max(abs(fem_seq$C - fem_par$C))
-#> [1] 4.336809e-19
+#> [1] 8.673617e-19
 ```
